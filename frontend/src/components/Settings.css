@@ -631,8 +631,14 @@
   font-weight: 500;
 }
 
-.type-btn:hover:not(.active) {
+.type-btn:hover:not(.active):not(:disabled) {
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+.type-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--text-secondary);
 }
 
 .model-select {

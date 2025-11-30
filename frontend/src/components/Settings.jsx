@@ -1079,6 +1079,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
                     setSearchQueryFilter('local');
                     setSearchQueryModel('');
                   }}
+                  disabled={!enabledProviders.ollama || ollamaAvailableModels.length === 0}
+                  title={!enabledProviders.ollama || ollamaAvailableModels.length === 0 ? 'Enable and connect Ollama first' : ''}
                 >
                   Local
                 </button>
@@ -1133,6 +1135,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
                           type="button"
                           className={`type-btn ${memberFilter === 'local' ? 'active' : ''}`}
                           onClick={() => handleMemberFilterChange(index, 'local')}
+                          disabled={!enabledProviders.ollama || ollamaAvailableModels.length === 0}
+                          title={!enabledProviders.ollama || ollamaAvailableModels.length === 0 ? 'Enable and connect Ollama first' : ''}
                         >
                           Local
                         </button>
@@ -1208,6 +1212,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
                       setChairmanFilter('local');
                       setChairmanModel('');
                     }}
+                    disabled={!enabledProviders.ollama || ollamaAvailableModels.length === 0}
+                    title={!enabledProviders.ollama || ollamaAvailableModels.length === 0 ? 'Enable and connect Ollama first' : ''}
                   >
                     Local
                   </button>
