@@ -1058,27 +1058,33 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
 
   const selectedProviderInfo = SEARCH_PROVIDERS.find(p => p.id === selectedSearchProvider);
 
-  const renderModelOptions = (models) => {
+    const renderModelOptions = (models) => {
     // Group models by provider
     const grouped = models.reduce((acc, model) => {
-      // Determine provider
-      let provider = model.provider || 'OpenRouter';
-      if (model.id.startsWith('ollama:')) provider = 'Local (Ollama)';
-      else if (model.id.startsWith('openai:')) provider = 'OpenAI';
-      else if (model.id.startsWith('anthropic:')) provider = 'Anthropic';
-      else if (model.id.startsWith('google:')) provider = 'Google';
-      else if (model.id.startsWith('mistral:')) provider = 'Mistral';
-      else if (model.id.startsWith('deepseek:')) provider = 'DeepSeek';
-      else if (model.id.startsWith('x-ai:')) provider = 'xAI';
-      else if (model.id.startsWith('meta-llama:')) provider = 'Meta Llama';
+      let providerLabel = model.provider; // Start with the provider field from backend
 
-      if (!acc[provider]) acc[provider] = [];
-      acc[provider].push(model);
+      if (model.provider === 'OpenRouter') {
+        providerLabel = 'OpenRouter (Cloud)';
+      } else if (model.provider === 'Ollama') {
+        providerLabel = 'Local (Ollama)';
+      } else {
+        // For all other providers (OpenAI, Anthropic, Google, Mistral, DeepSeek, Groq)
+        // from direct connections, append '(Direct)'
+        providerLabel = `${model.provider} (Direct)`;
+      }
+
+      if (!acc[providerLabel]) acc[providerLabel] = [];
+      acc[providerLabel].push(model);
       return acc;
     }, {});
 
-    // Sort providers
-    const providerOrder = ['Google', 'Anthropic', 'OpenAI', 'Mistral', 'DeepSeek', 'xAI', 'Meta Llama', 'Local (Ollama)', 'OpenRouter'];
+    // Sort providers - prioritize direct, then specific vendors, then local
+    const providerOrder = [
+      'OpenAI (Direct)', 'Anthropic (Direct)', 'Google (Direct)', 'Mistral (Direct)', 'DeepSeek (Direct)',
+      'Groq (Direct)',
+      'OpenRouter (Cloud)',
+      'Local (Ollama)'
+    ];
     const sortedProviders = Object.keys(grouped).sort((a, b) => {
       const indexA = providerOrder.indexOf(a);
       const indexB = providerOrder.indexOf(b);
@@ -1191,13 +1197,26 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
                     <div className="filter-divider"></div>
 
                     {/* Direct Connections Master Toggle */}
-                    <div className="filter-group" style={{ marginBottom: enabledProviders.direct ? '16px' : '0' }}>
+                    <div className="filter-group" style={{ marginBottom: '12px' }}>
                       <label className="toggle-wrapper">
                         <div className="toggle-switch">
                           <input
                             type="checkbox"
                             checked={enabledProviders.direct}
-                            onChange={(e) => setEnabledProviders(prev => ({ ...prev, direct: e.target.checked }))}
+                            onChange={(e) => {
+                              const isEnabled = e.target.checked;
+                              setEnabledProviders(prev => ({ ...prev, direct: isEnabled }));
+                              // If master turned off, disable all children
+                              if (!isEnabled) {
+                                setDirectProviderToggles({
+                                  openai: false,
+                                  anthropic: false,
+                                  google: false,
+                                  mistral: false,
+                                  deepseek: false
+                                });
+                              }
+                            }}
                           />
                           <span className="slider"></span>
                         </div>
@@ -1206,25 +1225,41 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
                     </div>
 
                     {/* Individual Direct Provider Toggles (purple) */}
-                    {enabledProviders.direct && (
-                      <div className="direct-grid">
-                        {DIRECT_PROVIDERS.map(dp => (
-                          <label key={dp.id} className="toggle-wrapper">
-                            <div className="toggle-switch direct-toggle">
-                              <input
-                                type="checkbox"
-                                checked={directProviderToggles[dp.id]}
-                                onChange={(e) => setDirectProviderToggles(prev => ({ ...prev, [dp.id]: e.target.checked }))}
-                              />
-                              <span className="slider"></span>
-                            </div>
-                            <span className="toggle-text" style={{ fontSize: '13px' }}>
-                              {dp.name}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
+                    <div className="direct-grid" style={{ opacity: enabledProviders.direct ? 1 : 0.7 }}>
+                      {DIRECT_PROVIDERS.map(dp => (
+                        <label key={dp.id} className="toggle-wrapper">
+                          <div className="toggle-switch direct-toggle">
+                            <input
+                              type="checkbox"
+                              checked={directProviderToggles[dp.id]}
+                              onChange={(e) => {
+                                const isEnabled = e.target.checked;
+                                setDirectProviderToggles(prev => {
+                                  const newState = { ...prev, [dp.id]: isEnabled };
+                                  
+                                  // Auto-enable master if any child is enabled
+                                  if (isEnabled && !enabledProviders.direct) {
+                                    setEnabledProviders(prevEP => ({ ...prevEP, direct: true }));
+                                  }
+                                  
+                                  // Auto-disable master if ALL children are disabled
+                                  const hasAnyEnabled = Object.values(newState).some(v => v);
+                                  if (!hasAnyEnabled && enabledProviders.direct) {
+                                    setEnabledProviders(prevEP => ({ ...prevEP, direct: false }));
+                                  }
+                                  
+                                  return newState;
+                                });
+                              }}
+                            />
+                            <span className="slider"></span>
+                          </div>
+                          <span className="toggle-text" style={{ fontSize: '13px' }}>
+                            {dp.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </section>
 

@@ -90,9 +90,14 @@ class GoogleProvider(LLMProvider):
                     if "generateContent" in model.get("supportedGenerationMethods", []):
                         # Clean up ID (remove models/ prefix)
                         model_id = model["name"].removeprefix("models/")
+                        
+                        # Extra safety check for embeddings/vision-only if they sneak in
+                        if "embed" in model_id.lower() or "vision" in model_id.lower():
+                            continue
+                            
                         models.append({
                             "id": f"google:{model_id}",
-                            "name": model.get("displayName", model_id),
+                            "name": f"{model.get('displayName', model_id)} [Google]",
                             "provider": "Google"
                         })
                 

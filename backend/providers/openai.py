@@ -69,10 +69,15 @@ class OpenAIProvider(LLMProvider):
                 models = []
                 # Filter for chat models
                 for model in data.get("data", []):
-                    if "gpt" in model["id"] or "o1" in model["id"] or "o3" in model["id"]:
+                    mid = model["id"].lower()
+                    # Filter out non-chat models
+                    if any(x in mid for x in ["audio", "realtime", "voice", "tts", "dall-e", "whisper", "embed", "transcribe", "sora"]):
+                        continue
+                        
+                    if "gpt" in mid or "o1" in mid or "o3" in mid:
                         models.append({
                             "id": f"openai:{model['id']}",
-                            "name": model["id"],
+                            "name": f"{model['id']} [OpenAI]",
                             "provider": "OpenAI"
                         })
                 return sorted(models, key=lambda x: x["name"])

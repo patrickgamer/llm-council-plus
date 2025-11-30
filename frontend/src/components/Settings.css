@@ -661,10 +661,10 @@
   align-items: center;
   margin-bottom: 4px;
   background-color: #fff;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  gap: 12px;
+  gap: 8px;
 }
 
 .model-type-toggle {
@@ -720,13 +720,13 @@
 }
 
 .remove-member-button {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: 1px solid #ffcdd2;
-  border-radius: 6px;
+  border-radius: 4px;
   background: #ffebee;
   color: #c62828;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -974,7 +974,8 @@ input:checked+.slider:before {
   font-size: 13px;
   font-weight: 500;
   color: #333;
-  min-width: 100px;
+  min-width: 70px;
+  flex-shrink: 0;
 }
 
 .prompt-content {

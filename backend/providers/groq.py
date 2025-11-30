@@ -76,7 +76,7 @@ class GroqProvider(LLMProvider):
                     # Groq models usually have clean IDs like "llama3-70b-8192"
                     models.append({
                         "id": f"groq:{model['id']}",
-                        "name": model["id"],
+                        "name": f"{model['id']} [Groq]",
                         "provider": "Groq",
                         "context_length": model.get("context_window", 8192) # Fallback if missing
                     })

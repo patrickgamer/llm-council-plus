@@ -722,7 +722,20 @@ async def get_openrouter_models():
 
             data = response.json()
             models = []
+            
+            # Comprehensive exclusion list for non-text/chat models
+            excluded_terms = [
+                "embed", "audio", "whisper", "tts", "dall-e", "realtime", 
+                "vision-only", "voxtral", "speech", "transcribe", "sora"
+            ]
+
             for model in data.get("data", []):
+                mid = model.get("id", "").lower()
+                name_lower = model.get("name", "").lower()
+                
+                if any(term in mid for term in excluded_terms) or any(term in name_lower for term in excluded_terms):
+                    continue
+
                 # Extract pricing - free models have 0 cost
                 pricing = model.get("pricing", {})
                 prompt_price = float(pricing.get("prompt", "0") or "0")
@@ -731,7 +744,7 @@ async def get_openrouter_models():
 
                 models.append({
                     "id": model.get("id"),
-                    "name": model.get("name", model.get("id")),
+                    "name": f"{model.get('name', model.get('id'))} [OpenRouter]",
                     "context_length": model.get("context_length"),
                     "is_free": is_free,
                 })

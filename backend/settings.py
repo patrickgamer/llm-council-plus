@@ -12,13 +12,13 @@ SETTINGS_FILE = Path(__file__).parent.parent / "data" / "settings.json"
 
 # Default models (matches original llm-council defaults)
 DEFAULT_COUNCIL_MODELS = [
-    "openai/gpt-5.1",
-    "google/gemini-3-pro-preview",
-    "anthropic/claude-sonnet-4.5",
-    "x-ai/grok-4",
+    "openai/gpt-4o",
+    "google/gemini-1.5-flash",
+    "anthropic/claude-3-sonnet",
+    "mistralai/mistral-large",
 ]
-DEFAULT_CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
-DEFAULT_SEARCH_QUERY_MODEL = "google/gemini-2.0-flash-001"
+DEFAULT_CHAIRMAN_MODEL = "openai/gpt-4o"
+DEFAULT_SEARCH_QUERY_MODEL = "google/gemini-1.5-flash"
 
 # Default enabled providers
 DEFAULT_ENABLED_PROVIDERS = {
@@ -42,31 +42,31 @@ DEFAULT_DIRECT_PROVIDER_TOGGLES = {
 # Available models for selection (popular OpenRouter models)
 AVAILABLE_MODELS = [
     # OpenAI
-    {"id": "openai/gpt-4.1", "name": "GPT-4.1", "provider": "OpenAI"},
-    {"id": "openai/gpt-4.1-mini", "name": "GPT-4.1 Mini", "provider": "OpenAI"},
-    {"id": "openai/gpt-4o", "name": "GPT-4o", "provider": "OpenAI"},
-    {"id": "openai/o3", "name": "o3", "provider": "OpenAI"},
-    {"id": "openai/o3-mini", "name": "o3 Mini", "provider": "OpenAI"},
+    {"id": "openai/gpt-4.1", "name": "GPT-4.1 [OpenRouter]", "provider": "OpenAI"},
+    {"id": "openai/gpt-4.1-mini", "name": "GPT-4.1 Mini [OpenRouter]", "provider": "OpenAI"},
+    {"id": "openai/gpt-4o", "name": "GPT-4o [OpenRouter]", "provider": "OpenAI"},
+    {"id": "openai/o3", "name": "o3 [OpenRouter]", "provider": "OpenAI"},
+    {"id": "openai/o3-mini", "name": "o3 Mini [OpenRouter]", "provider": "OpenAI"},
     # Google
-    {"id": "google/gemini-2.5-pro", "name": "Gemini 2.5 Pro", "provider": "Google"},
-    {"id": "google/gemini-2.5-flash", "name": "Gemini 2.5 Flash", "provider": "Google"},
-    {"id": "google/gemini-2.0-flash-001", "name": "Gemini 2.0 Flash", "provider": "Google"},
+    {"id": "google/gemini-2.5-pro", "name": "Gemini 2.5 Pro [OpenRouter]", "provider": "Google"},
+    {"id": "google/gemini-2.5-flash", "name": "Gemini 2.5 Flash [OpenRouter]", "provider": "Google"},
+    {"id": "google/gemini-2.0-flash-001", "name": "Gemini 2.0 Flash [OpenRouter]", "provider": "Google"},
     # Anthropic
-    {"id": "anthropic/claude-sonnet-4", "name": "Claude Sonnet 4", "provider": "Anthropic"},
-    {"id": "anthropic/claude-opus-4", "name": "Claude Opus 4", "provider": "Anthropic"},
-    {"id": "anthropic/claude-3.5-haiku", "name": "Claude 3.5 Haiku", "provider": "Anthropic"},
+    {"id": "anthropic/claude-sonnet-4", "name": "Claude Sonnet 4 [OpenRouter]", "provider": "Anthropic"},
+    {"id": "anthropic/claude-opus-4", "name": "Claude Opus 4 [OpenRouter]", "provider": "Anthropic"},
+    {"id": "anthropic/claude-3.5-haiku", "name": "Claude 3.5 Haiku [OpenRouter]", "provider": "Anthropic"},
     # xAI
-    {"id": "x-ai/grok-3", "name": "Grok 3", "provider": "xAI"},
-    {"id": "x-ai/grok-3-mini", "name": "Grok 3 Mini", "provider": "xAI"},
+    {"id": "x-ai/grok-3", "name": "Grok 3 [OpenRouter]", "provider": "xAI"},
+    {"id": "x-ai/grok-3-mini", "name": "Grok 3 Mini [OpenRouter]", "provider": "xAI"},
     # Meta
-    {"id": "meta-llama/llama-4-maverick", "name": "Llama 4 Maverick", "provider": "Meta"},
-    {"id": "meta-llama/llama-4-scout", "name": "Llama 4 Scout", "provider": "Meta"},
+    {"id": "meta-llama/llama-4-maverick", "name": "Llama 4 Maverick [OpenRouter]", "provider": "Meta"},
+    {"id": "meta-llama/llama-4-scout", "name": "Llama 4 Scout [OpenRouter]", "provider": "Meta"},
     # DeepSeek
-    {"id": "deepseek/deepseek-r1", "name": "DeepSeek R1", "provider": "DeepSeek"},
-    {"id": "deepseek/deepseek-chat", "name": "DeepSeek Chat", "provider": "DeepSeek"},
+    {"id": "deepseek/deepseek-r1", "name": "DeepSeek R1 [OpenRouter]", "provider": "DeepSeek"},
+    {"id": "deepseek/deepseek-chat", "name": "DeepSeek Chat [OpenRouter]", "provider": "DeepSeek"},
     # Mistral
-    {"id": "mistralai/mistral-large-2411", "name": "Mistral Large", "provider": "Mistral"},
-    {"id": "mistralai/mistral-medium-3", "name": "Mistral Medium", "provider": "Mistral"},
+    {"id": "mistralai/mistral-large-2411", "name": "Mistral Large [OpenRouter]", "provider": "Mistral"},
+    {"id": "mistralai/mistral-medium-3", "name": "Mistral Medium [OpenRouter]", "provider": "Mistral"},
 ]
 
 

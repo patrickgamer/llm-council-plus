@@ -50,11 +50,27 @@ class DeepSeekProvider(LLMProvider):
             return {"error": True, "error_message": str(e)}
 
     async def get_models(self) -> List[Dict[str, Any]]:
-        # Return known models
-        return [
+        # Return known models, filtering out non-chat types
+        models = []
+        known_deepseek_models = [
             {"id": "deepseek:deepseek-chat", "name": "DeepSeek Chat (V3)", "provider": "DeepSeek"},
             {"id": "deepseek:deepseek-reasoner", "name": "DeepSeek Reasoner (R1)", "provider": "DeepSeek"},
+            # Add other known DeepSeek models here if needed in the future
         ]
+        
+        excluded_terms = [
+            "embed", "audio", "whisper", "tts", "dall-e", "realtime", 
+            "vision-only", "voxtral", "speech", "transcribe", "sora"
+        ]
+
+        for model in known_deepseek_models:
+            mid = model["id"].lower()
+            name = model["name"].lower()
+            if not any(term in mid or term in name for term in excluded_terms):
+                # Append [DeepSeek] to the name
+                model["name"] = f"{model['name']} [DeepSeek]"
+                models.append(model)
+        return models
 
     async def validate_key(self, api_key: str) -> Dict[str, Any]:
         try:

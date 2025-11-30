@@ -67,12 +67,16 @@ class MistralProvider(LLMProvider):
                 data = response.json()
                 models = []
                 for model in data.get("data", []):
-                    if not model.get("id", "").startswith("open-"): # Filter out some internal/deprecated
-                         models.append({
-                            "id": f"mistral:{model['id']}",
-                            "name": model["id"],
-                            "provider": "Mistral"
-                        })
+                    mid = model.get("id", "").lower()
+                    # Filter out embeddings, voxtral, ocr, and internal/deprecated models
+                    if "embed" in mid or "voxtral" in mid or "ocr" in mid or mid.startswith("open-"):
+                         continue
+
+                    models.append({
+                        "id": f"mistral:{model['id']}",
+                        "name": f"{model['id']} [Mistral]",
+                        "provider": "Mistral"
+                    })
                 return sorted(models, key=lambda x: x["name"])
                 
         except Exception:

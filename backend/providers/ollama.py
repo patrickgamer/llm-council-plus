@@ -38,7 +38,7 @@ class OllamaProvider(LLMProvider):
                         
                     models.append({
                         "id": f"ollama:{model_name}",
-                        "name": model_name,
+                        "name": f"{model_name} [Ollama]",
                         "provider": "Ollama",
                         "is_free": True
                     })

@@ -96,7 +96,7 @@ class AnthropicProvider(LLMProvider):
                     if model.get("type") == "model":
                         models.append({
                             "id": f"anthropic:{model['id']}",
-                            "name": model.get("display_name", model['id']),
+                            "name": f"{model.get('display_name', model['id'])} [Anthropic]",
                             "provider": "Anthropic"
                         })
                 

@@ -35,6 +35,19 @@ class OpenRouterProvider(LLMProvider):
                 data = response.json()
                 models = []
                 for model in data.get("data", []):
+                    # Filter out non-chat models based on ID and Name
+                    mid = model.get("id", "").lower()
+                    name = model.get("name", "").lower()
+                    
+                    # Comprehensive exclusion list for non-text/chat models
+                    excluded_terms = [
+                        "embed", "audio", "whisper", "tts", "dall-e", "realtime", 
+                        "vision-only", "voxtral", "speech", "transcribe", "sora"
+                    ]
+                    
+                    if any(term in mid for term in excluded_terms) or any(term in name for term in excluded_terms):
+                        continue
+                        
                     # Extract pricing
                     pricing = model.get("pricing", {})
                     prompt_price = float(pricing.get("prompt", "0") or "0")
@@ -43,7 +56,7 @@ class OpenRouterProvider(LLMProvider):
                     
                     models.append({
                         "id": model.get("id"),
-                        "name": model.get("name", model.get("id")),
+                        "name": f"{model.get('name', model.get('id'))} [OpenRouter]",
                         "provider": "OpenRouter",
                         "is_free": is_free
                     })
