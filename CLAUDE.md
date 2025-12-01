@@ -493,6 +493,58 @@ curl http://localhost:11434/api/tags
 - Optional optimizations: Settings state simplification, request caching
 - Testing: Verify Groq integration, sidebar navigation, "I'm Feeling Lucky" feature
 
+### Dec 1 - UI/UX Polish & Layout Fixes
+**Major UI refinements after Gemini's Midnight Glass Phase 1-3 implementation (28 commits):**
+
+**Welcome Page Fixes:**
+- Fixed `.empty-state` centering (absolute positioning with `transform: translate(-50%, -50%)`)
+- Added FOUC prevention using `will-change: transform` (eliminates page load flash)
+- Added `.app-footer` at bottom (40px) for version/creator info
+- Proper vertical spacing and alignment
+
+**Sidebar Restoration:**
+- Restored missing "+ New Council" button with blue gradient styling
+- Fixed glassmorphic conversation cards (rgba backgrounds + `backdrop-filter: blur(8px)`)
+- Added gradient to "Plus" in title (`linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)`)
+- Added inline delete confirmation (✓/✕ buttons) replacing browser popup
+- Improved UX: no scrolling needed for multiple deletions
+
+**Layout Overflow Fixes:**
+- Removed `width: 100%` from `.chat-interface` and `.messages-area` (conflicted with `flex: 1`)
+- Fixed sidebar being cut off when starting new conversations
+- Proper flexbox hierarchy preventing horizontal scroll
+
+**Font Consistency:**
+- Standardized all stage content to Merriweather 15px/1.7 line-height
+- Standardized all error messages to JetBrains Mono
+- Consistent typography across Stage 1, Stage 2, and Stage 3
+
+**Chat Window Enhancements:**
+- Added `.hero-footer` positioned at 350px (high enough to clear floating input area)
+- Increased input container opacity to 0.95 for better visibility
+- Stronger border (2px solid rgba(59, 130, 246, 0.5)) for floating input
+- Fully opaque background (rgba(30, 41, 59, 1)) when input focused
+
+**Stage 2 Improvements:**
+- Added trophy emoji (🏆) to aggregate rankings header
+- Made rank scores white and bold (`color: #ffffff; font-weight: 600;`)
+- Enhanced visibility of leaderboard
+
+**Files Modified:**
+- `frontend/src/components/ChatInterface.css` - Welcome page, footer positioning, input visibility
+- `frontend/src/components/ChatInterface.jsx` - Removed fadeIn animations
+- `frontend/src/components/Sidebar.css` - New council button, cards, inline confirmation, gradient title
+- `frontend/src/components/Sidebar.jsx` - Inline delete confirmation state management
+- `frontend/src/components/Stage1.css` - Font standardization
+- `frontend/src/components/Stage2.css` - Trophy emoji, score visibility, font consistency
+- `frontend/src/components/Stage2.jsx` - Header emoji
+- `frontend/src/App.jsx` - Removed window.confirm (inline confirmation handles it)
+
+**Communication Lesson:**
+Multiple iterations on footer positioning due to confusion between "Welcome Page" (no conversation) vs "Chat Window" (active conversation). Different positioning requirements because Chat Window has floating input blocking lower region. Final solution: `app-footer` at 40px, `hero-footer` at 350px.
+
+**Result:** 28 commits, polished UI with proper centering, no layout shifts, consistent typography, and improved UX for common actions.
+
 ## AI Coding Best Practices (Lessons Learned)
 
 **CRITICAL - Communication & Requirements:**
