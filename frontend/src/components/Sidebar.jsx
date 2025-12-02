@@ -37,7 +37,10 @@ export default function Sidebar({
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <div className="sidebar-title">LLM Council <span className="title-plus">Plus</span></div>
+        <div className="sidebar-title-wrapper">
+          <div className="sidebar-title">LLM Council <span className="title-plus">Plus</span></div>
+          <div className="sidebar-subtitle">Created by: Jacob Ben-David</div>
+        </div>
         <button
           className="icon-button"
           onClick={onOpenSettings}

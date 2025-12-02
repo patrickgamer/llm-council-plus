@@ -101,8 +101,13 @@ function App() {
       const hasChairman = chairman && chairman.trim() !== '';
       setCouncilConfigured(hasCouncilMembers && hasChairman);
     } catch (error) {
-      console.error('Failed to re-check council config:', error);
+      console.error('Error after closing settings:', error);
     }
+  };
+
+  const handleOpenSettings = (section = 'council') => {
+    setSettingsInitialSection(section || 'council');
+    setShowSettings(true);
   };
 
   // Load conversations on mount
@@ -636,10 +641,7 @@ function App() {
         councilConfigured={councilConfigured}
         councilModels={councilModels}
         chairmanModel={chairmanModel}
-        onOpenSettings={(section) => {
-          if (section) setSettingsInitialSection(section);
-          setShowSettings(true);
-        }}
+        onOpenSettings={handleOpenSettings}
       />
       {showSettings && (
         <Settings

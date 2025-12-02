@@ -64,18 +64,15 @@ export default function ChatInterface({
             <div className="chat-interface">
                 <div className="empty-state">
                     <h1>Welcome to LLM Council <span className="plus-text">Plus</span></h1>
-                    <p>The Council is ready to deliberate.</p>
+                    <p className="hero-message">
+                        The Council is ready to deliberate. <button className="config-link" onClick={() => onOpenSettings('council')}>Configure it</button>
+                    </p>
 
                     {/* Council Preview Grid */}
                     <div className="welcome-grid-container">
                         <CouncilGrid models={councilModels} chairman={chairmanModel} status="idle" />
                     </div>
 
-                    <div className="app-footer">
-                        <span>Version: 1.0.0</span>
-                        <span className="footer-separator">•</span>
-                        <span>Created by: Jacob Ben-David</span>
-                    </div>
                 </div>
             </div>
         );
@@ -90,16 +87,11 @@ export default function ChatInterface({
                         <div className="hero-content">
                             <h1>Welcome to LLM Council <span className="text-gradient">Plus</span></h1>
                             <p className="hero-subtitle">
-                                The Council is ready to deliberate.
+                                The Council is ready to deliberate. <button className="config-link" onClick={() => onOpenSettings('council')}>Configure it</button>
                             </p>
                             <div className="welcome-grid-container">
                                 <CouncilGrid models={councilModels} chairman={chairmanModel} status="idle" />
                             </div>
-                        </div>
-                        <div className="hero-footer">
-                            <span>Version: 1.0.0</span>
-                            <span className="footer-separator">•</span>
-                            <span>Created by: Jacob Ben-David</span>
                         </div>
                     </div>
                 ) : (

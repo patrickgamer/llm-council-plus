@@ -130,6 +130,11 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     loadSettings();
   }, []);
 
+  // Update activeSection when initialSection prop changes
+  useEffect(() => {
+    setActiveSection(initialSection);
+  }, [initialSection]);
+
   // Check for changes
   useEffect(() => {
     if (!settings) return;
