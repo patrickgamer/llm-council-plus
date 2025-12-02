@@ -156,18 +156,17 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, star
                 <div className="aggregate-rankings">
                     <h4>🏆 Visual Leaderboard</h4>
                     <p className="stage-description">
-                        Combined results across all peer evaluations. Longer bars indicate better rankings (lower average rank).
+                        Combined results across all peer evaluations. Bar length corresponds to average rank value.
                     </p>
                     <div className="aggregate-list">
                         {aggregateRankings.map((agg, index) => {
                             const visuals = getModelVisuals(agg.model);
                             const shortName = getShortModelName(agg.model);
 
-                            // Calculate score percentage (inverted rank)
-                            // Max rank is the number of models
+                            // Calculate bar width proportional to the rank value
+                            // Higher rank = longer bar (matches the number visually)
                             const maxRank = aggregateRankings.length;
-                            // Score = (Max - Avg + 1) / Max * 100
-                            const scorePercent = Math.max(5, Math.min(100, ((maxRank - agg.average_rank + 1) / maxRank) * 100));
+                            const scorePercent = Math.max(5, Math.min(100, (agg.average_rank / maxRank) * 100));
 
                             return (
                                 <div key={index} className="aggregate-item">
