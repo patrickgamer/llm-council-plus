@@ -123,6 +123,14 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, star
               currentRanking.parsed_ranking.length > 0 && (
                 <div className="parsed-ranking">
                   <strong>Extracted Ranking:</strong>
+                  <span className="info-tooltip-container">
+                    <span className="info-icon">?</span>
+                    <span className="info-tooltip">
+                      This is the ranking parsed from the model's text response.
+                      It's used to calculate the aggregate rankings below.
+                      Compare with the text above to verify the system correctly understood the model's ranking.
+                    </span>
+                  </span>
                   <ol>
                     {currentRanking.parsed_ranking.map((label, i) => (
                       <li key={i}>
