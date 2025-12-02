@@ -146,6 +146,11 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
       if (JSON.stringify(councilModels) !== JSON.stringify(settings.council_models)) return true;
       if (chairmanModel !== settings.chairman_model) return true;
 
+      // Remote/Local filters
+      if (JSON.stringify(councilMemberFilters) !== JSON.stringify(settings.council_member_filters || {})) return true;
+      if (chairmanFilter !== (settings.chairman_filter || 'remote')) return true;
+      if (searchQueryFilter !== (settings.search_query_filter || 'remote')) return true;
+
       // Web Search Query Generator
       if (searchQueryModel !== settings.search_query_model) return true;
 
@@ -169,6 +174,9 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
     directProviderToggles,
     councilModels,
     chairmanModel,
+    councilMemberFilters,
+    chairmanFilter,
+    searchQueryFilter,
     searchQueryModel,
     prompts
   ]);
@@ -242,18 +250,34 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
         });
       }
 
-      // Individual direct provider toggles
-      setDirectProviderToggles({
-        openai: !!data.openai_api_key_set,
-        anthropic: !!data.anthropic_api_key_set,
-        google: !!data.google_api_key_set,
-        mistral: !!data.mistral_api_key_set,
-        deepseek: !!data.deepseek_api_key_set
-      });
+      // Individual direct provider toggles - load from saved settings
+      if (data.direct_provider_toggles) {
+        setDirectProviderToggles(data.direct_provider_toggles);
+      } else {
+        // Fallback for first-time users: auto-enable if API key is configured
+        setDirectProviderToggles({
+          openai: !!data.openai_api_key_set,
+          anthropic: !!data.anthropic_api_key_set,
+          google: !!data.google_api_key_set,
+          mistral: !!data.mistral_api_key_set,
+          deepseek: !!data.deepseek_api_key_set
+        });
+      }
 
       // Council Configuration (unified)
       setCouncilModels(data.council_models || []);
       setChairmanModel(data.chairman_model || '');
+
+      // Remote/Local filters - load from saved settings
+      if (data.council_member_filters) {
+        setCouncilMemberFilters(data.council_member_filters);
+      }
+      if (data.chairman_filter) {
+        setChairmanFilter(data.chairman_filter);
+      }
+      if (data.search_query_filter) {
+        setSearchQueryFilter(data.search_query_filter);
+      }
 
       // Web Search Query Generator
       setSearchQueryModel(data.search_query_model || 'google/gemini-2.5-flash');
@@ -768,6 +792,9 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
         council_models: ['', '', '', ''],
         chairman_model: '',
         search_query_model: '',
+        council_member_filters: { 0: 'remote', 1: 'remote', 2: 'remote', 3: 'remote' },
+        chairman_filter: 'remote',
+        search_query_filter: 'remote',
         stage1_prompt: defaults.stage1_prompt,
         stage2_prompt: defaults.stage2_prompt,
         stage3_prompt: defaults.stage3_prompt,
@@ -934,6 +961,11 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama }) {
         // Council Configuration (unified)
         council_models: councilModels,
         chairman_model: chairmanModel,
+
+        // Remote/Local filters for each selection
+        council_member_filters: councilMemberFilters,
+        chairman_filter: chairmanFilter,
+        search_query_filter: searchQueryFilter,
 
         // Web Search Query Generator
         search_query_model: searchQueryModel,
