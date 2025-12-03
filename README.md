@@ -21,7 +21,9 @@ Instead of asking a single LLM (like ChatGPT or Claude) for an answer, **LLM Cou
 
 The result? More balanced, accurate, and thoroughly vetted responses that leverage the collective intelligence of multiple AI models.
 
-<img width="1915" height="922" alt="image" src="https://github.com/user-attachments/assets/374c1670-02d7-4cc4-a210-94cd6dbd7b2d" />
+<p align="center">
+  <img width="1915" alt="LLM Council Plus Interface" src="https://github.com/user-attachments/assets/374c1670-02d7-4cc4-a210-94cd6dbd7b2d" />
+</p>
 
 ---
 
@@ -74,6 +76,8 @@ The result? More balanced, accurate, and thoroughly vetted responses that levera
 ### Multi-Provider Support
 Mix and match models from different sources in your council:
 
+<div align="center">
+
 | Provider | Type | Description |
 |----------|------|-------------|
 | **OpenRouter** | Cloud | 100+ models via single API (GPT-4, Claude, Gemini, Mistral, etc.) |
@@ -86,13 +90,21 @@ Mix and match models from different sources in your council:
 | **DeepSeek Direct** | Cloud | Direct connection to DeepSeek API |
 | **Custom Endpoint** | Any | Connect to any OpenAI-compatible API (Together AI, Fireworks, vLLM, LM Studio, GitHub Models, etc.) |
 
-<img width="600" height="441" alt="image" src="https://github.com/user-attachments/assets/f9a5ec9d-17e8-4e78-ad40-0c21850f2823" />
+</div>
+
+<p align="center">
+  <img width="600" alt="LLM API Keys Settings" src="https://github.com/user-attachments/assets/f9a5ec9d-17e8-4e78-ad40-0c21850f2823" />
+</p>
 
 ### Execution Modes
 
-<img width="818" height="164" alt="image" src="https://github.com/user-attachments/assets/6f8dcc5b-6dbb-423a-8376-9f6b0ebb58ba" />
+<p align="center">
+  <img width="818" alt="Execution Modes Toggle" src="https://github.com/user-attachments/assets/6f8dcc5b-6dbb-423a-8376-9f6b0ebb58ba" />
+</p>
 
 Choose how deeply the council deliberates:
+
+<div align="center">
 
 | Mode | Stages | Best For |
 |------|--------|----------|
@@ -100,12 +112,17 @@ Choose how deeply the council deliberates:
 | **Chat + Ranking** | Stages 1 & 2 | See how models rank each other |
 | **Full Deliberation** | All 3 stages | Complete council synthesis (default) |
 
+</div>
 
 ### Web Search Integration
 
-<img width="841" height="777" alt="image" src="https://github.com/user-attachments/assets/ae0d8f30-8a0d-4ae2-924b-3de75e9102e1" />
+<p align="center">
+  <img width="841" alt="Web Search Settings" src="https://github.com/user-attachments/assets/ae0d8f30-8a0d-4ae2-924b-3de75e9102e1" />
+</p>
 
 Ground your council's responses in real-time information:
+
+<div align="center">
 
 | Provider | Type | Notes |
 |----------|------|-------|
@@ -113,11 +130,15 @@ Ground your council's responses in real-time information:
 | **Tavily** | API Key | Purpose-built for LLMs, rich content |
 | **Brave Search** | API Key | Privacy-focused, 2,000 free queries/month |
 
+</div>
+
 **Full Article Fetching**: Uses [Jina Reader](https://jina.ai/reader) to extract full article content from top search results (configurable 0-10 results).
 
 ### Temperature Controls
 
-<img width="586" height="379" alt="image" src="https://github.com/user-attachments/assets/3922edf6-99f5-4020-b80f-ba3c43a2ce9a" />
+<p align="center">
+  <img width="586" alt="Temperature Controls" src="https://github.com/user-attachments/assets/3922edf6-99f5-4020-b80f-ba3c43a2ce9a" />
+</p>
 
 Fine-tune creativity vs consistency:
 
@@ -125,7 +146,9 @@ Fine-tune creativity vs consistency:
 - **Chairman Heat**: Controls final synthesis creativity (default: 0.4)
 - **Stage 2 Heat**: Controls peer ranking consistency (default: 0.3)
 
-<img width="849" height="783" alt="image" src="https://github.com/user-attachments/assets/45880bee-1fec-4efc-b1cb-eceaabe071ff" />
+<p align="center">
+  <img width="849" alt="Council Configuration" src="https://github.com/user-attachments/assets/45880bee-1fec-4efc-b1cb-eceaabe071ff" />
+</p>
 
 ### Additional Features
 
@@ -138,7 +161,9 @@ Fine-tune creativity vs consistency:
 - **"I'm Feeling Lucky"**: Randomize your council composition
 - **Import & Export**:  backup and share your favorite council configurations, system prompts, and settings
 
-<img width="854" height="495" alt="image" src="https://github.com/user-attachments/assets/0e618bd4-02c2-47b2-b82b-c4900b7a4fdd" />
+<p align="center">
+  <img width="854" alt="Backup and Reset" src="https://github.com/user-attachments/assets/0e618bd4-02c2-47b2-b82b-c4900b7a4fdd" />
+</p>
 
 
 ---
@@ -215,6 +240,8 @@ On first launch, the Settings panel will open automatically. Configure at least 
 
 ### LLM API Keys
 
+<div align="center">
+
 | Provider | Get API Key |
 |----------|-------------|
 | OpenRouter | [openrouter.ai/keys](https://openrouter.ai/keys) |
@@ -224,6 +251,8 @@ On first launch, the Settings panel will open automatically. Configure at least 
 | Google AI | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
 | Mistral | [console.mistral.ai/api-keys](https://console.mistral.ai/api-keys/) |
 | DeepSeek | [platform.deepseek.com](https://platform.deepseek.com/) |
+
+</div>
 
 **API keys are auto-saved** when you click "Test" and the connection succeeds.
 
@@ -262,15 +291,28 @@ Connect to any OpenAI-compatible API:
 
 ### Search Providers
 
+<div align="center">
+
 | Provider | Setup |
 |----------|-------|
 | DuckDuckGo | Works out of the box, no setup needed |
 | Tavily | Get key at [tavily.com](https://tavily.com), enter in Search Providers tab |
 | Brave | Get key at [brave.com/search/api](https://brave.com/search/api/), enter in Search Providers tab |
 
+</div>
+
 **Search Query Processing:**
-- **Direct** (default): Send your exact query to the search engine
-- **Smart Keywords (YAKE)**: Extract keywords first (useful for very long prompts)
+
+<div align="center">
+
+| Mode | Description | Best For |
+|------|-------------|----------|
+| **Direct** (default) | Sends your exact query to the search engine | Short, focused questions. Works best with semantic search engines like Tavily and Brave. |
+| **Smart Keywords (YAKE)** | Extracts key terms from your prompt before searching | Very long prompts or multi-paragraph context that might confuse the search engine. Uses [YAKE](https://github.com/LIAAD/yake) keyword extraction. |
+
+</div>
+
+> **Tip:** Start with **Direct** mode. Only switch to **YAKE** if you notice search results are irrelevant when pasting long documents or complex prompts.
 
 ---
 
@@ -300,14 +342,20 @@ Connect to any OpenAI-compatible API:
 
 ### Keyboard Shortcuts
 
+<div align="center">
+
 | Key | Action |
 |-----|--------|
 | `Enter` | Send message |
 | `Shift+Enter` | New line in input |
 
+</div>
+
 ---
 
 ## Tech Stack
+
+<div align="center">
 
 | Component | Technology |
 |-----------|------------|
@@ -317,6 +365,8 @@ Connect to any OpenAI-compatible API:
 | **Storage** | JSON files in `data/` directory |
 | **Package Management** | uv (Python), npm (JavaScript) |
 
+</div>
+
 ---
 
 ## Data Storage
@@ -325,13 +375,23 @@ All data is stored locally in the `data/` directory:
 
 ```
 data/
-├── settings.json          # Your configuration
+├── settings.json          # Your configuration (includes API keys)
 └── conversations/         # Conversation history
     ├── {uuid}.json
     └── ...
 ```
 
 **Privacy**: No data is sent to external servers except API calls to your configured LLM providers.
+
+> **⚠️ Security Warning: API Keys Stored in Plain Text**
+>
+> In this build, **API keys are stored in clear text** in `data/settings.json`. The `data/` folder is included in `.gitignore` by default to prevent accidental exposure.
+>
+> **Important:**
+> - **Do NOT remove `data/` from `.gitignore`** — this protects your API keys from being pushed to GitHub
+> - If you fork this repo or modify `.gitignore`, ensure `data/` remains ignored
+> - Never commit `data/settings.json` to version control
+> - If you accidentally expose your keys, rotate them immediately at each provider's dashboard
 
 ---
 
