@@ -20,6 +20,7 @@ Instead of asking a single LLM (like ChatGPT or Claude) for an answer, **LLM Cou
 3. **Synthesize a final answer** through a Chairman model (Stage 3)
 
 The result? More balanced, accurate, and thoroughly vetted responses that leverage the collective intelligence of multiple AI models.
+
 <img width="1915" height="922" alt="image" src="https://github.com/user-attachments/assets/374c1670-02d7-4cc4-a210-94cd6dbd7b2d" />
 
 ---
@@ -85,7 +86,11 @@ Mix and match models from different sources in your council:
 | **DeepSeek Direct** | Cloud | Direct connection to DeepSeek API |
 | **Custom Endpoint** | Any | Connect to any OpenAI-compatible API (Together AI, Fireworks, vLLM, LM Studio, GitHub Models, etc.) |
 
+<img width="600" height="441" alt="image" src="https://github.com/user-attachments/assets/f9a5ec9d-17e8-4e78-ad40-0c21850f2823" />
+
 ### Execution Modes
+
+<img width="818" height="164" alt="image" src="https://github.com/user-attachments/assets/6f8dcc5b-6dbb-423a-8376-9f6b0ebb58ba" />
 
 Choose how deeply the council deliberates:
 
@@ -95,7 +100,10 @@ Choose how deeply the council deliberates:
 | **Chat + Ranking** | Stages 1 & 2 | See how models rank each other |
 | **Full Deliberation** | All 3 stages | Complete council synthesis (default) |
 
+
 ### Web Search Integration
+
+<img width="841" height="777" alt="image" src="https://github.com/user-attachments/assets/ae0d8f30-8a0d-4ae2-924b-3de75e9102e1" />
 
 Ground your council's responses in real-time information:
 
@@ -109,11 +117,15 @@ Ground your council's responses in real-time information:
 
 ### Temperature Controls
 
+<img width="586" height="379" alt="image" src="https://github.com/user-attachments/assets/3922edf6-99f5-4020-b80f-ba3c43a2ce9a" />
+
 Fine-tune creativity vs consistency:
 
 - **Council Heat**: Controls Stage 1 response creativity (default: 0.5)
 - **Chairman Heat**: Controls final synthesis creativity (default: 0.4)
 - **Stage 2 Heat**: Controls peer ranking consistency (default: 0.3)
+
+<img width="849" height="783" alt="image" src="https://github.com/user-attachments/assets/45880bee-1fec-4efc-b1cb-eceaabe071ff" />
 
 ### Additional Features
 
@@ -121,11 +133,13 @@ Fine-tune creativity vs consistency:
 - **Council Sizing**: adjust council size from 2 to 8
 - **Abort Anytime**: Cancel in-progress requests
 - **Conversation History**: All conversations saved locally
-- **Import/Export Config**: Backup and share your council configuration
 - **Customizable Prompts**: Edit Stage 1, 2, and 3 system prompts
 - **Rate Limit Warnings**: Alerts when your config may hit API limits (when >5 council members)
 - **"I'm Feeling Lucky"**: Randomize your council composition
-- **Import & Export**:  back up your favorite council configurations, system prompts, and settings
+- **Import & Export**:  backup and share your favorite council configurations, system prompts, and settings
+
+<img width="854" height="495" alt="image" src="https://github.com/user-attachments/assets/0e618bd4-02c2-47b2-b82b-c4900b7a4fdd" />
+
 
 ---
 
