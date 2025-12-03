@@ -76,8 +76,6 @@ The result? More balanced, accurate, and thoroughly vetted responses that levera
 ### Multi-Provider Support
 Mix and match models from different sources in your council:
 
-<div align="center">
-
 | Provider | Type | Description |
 |----------|------|-------------|
 | **OpenRouter** | Cloud | 100+ models via single API (GPT-4, Claude, Gemini, Mistral, etc.) |
@@ -89,8 +87,6 @@ Mix and match models from different sources in your council:
 | **Mistral Direct** | Cloud | Direct connection to Mistral API |
 | **DeepSeek Direct** | Cloud | Direct connection to DeepSeek API |
 | **Custom Endpoint** | Any | Connect to any OpenAI-compatible API (Together AI, Fireworks, vLLM, LM Studio, GitHub Models, etc.) |
-
-</div>
 
 <p align="center">
   <img width="600" alt="LLM API Keys Settings" src="https://github.com/user-attachments/assets/f9a5ec9d-17e8-4e78-ad40-0c21850f2823" />
@@ -104,15 +100,11 @@ Mix and match models from different sources in your council:
 
 Choose how deeply the council deliberates:
 
-<div align="center">
-
 | Mode | Stages | Best For |
 |------|--------|----------|
 | **Chat Only** | Stage 1 only | Quick responses, comparing model outputs |
 | **Chat + Ranking** | Stages 1 & 2 | See how models rank each other |
 | **Full Deliberation** | All 3 stages | Complete council synthesis (default) |
-
-</div>
 
 ### Web Search Integration
 
@@ -122,15 +114,11 @@ Choose how deeply the council deliberates:
 
 Ground your council's responses in real-time information:
 
-<div align="center">
-
 | Provider | Type | Notes |
 |----------|------|-------|
 | **DuckDuckGo** | Free | News search, no API key needed |
 | **Tavily** | API Key | Purpose-built for LLMs, rich content |
 | **Brave Search** | API Key | Privacy-focused, 2,000 free queries/month |
-
-</div>
 
 **Full Article Fetching**: Uses [Jina Reader](https://jina.ai/reader) to extract full article content from top search results (configurable 0-10 results).
 
@@ -240,8 +228,6 @@ On first launch, the Settings panel will open automatically. Configure at least 
 
 ### LLM API Keys
 
-<div align="center">
-
 | Provider | Get API Key |
 |----------|-------------|
 | OpenRouter | [openrouter.ai/keys](https://openrouter.ai/keys) |
@@ -251,8 +237,6 @@ On first launch, the Settings panel will open automatically. Configure at least 
 | Google AI | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
 | Mistral | [console.mistral.ai/api-keys](https://console.mistral.ai/api-keys/) |
 | DeepSeek | [platform.deepseek.com](https://platform.deepseek.com/) |
-
-</div>
 
 **API keys are auto-saved** when you click "Test" and the connection succeeds.
 
@@ -291,26 +275,18 @@ Connect to any OpenAI-compatible API:
 
 ### Search Providers
 
-<div align="center">
-
 | Provider | Setup |
 |----------|-------|
 | DuckDuckGo | Works out of the box, no setup needed |
 | Tavily | Get key at [tavily.com](https://tavily.com), enter in Search Providers tab |
 | Brave | Get key at [brave.com/search/api](https://brave.com/search/api/), enter in Search Providers tab |
 
-</div>
-
 **Search Query Processing:**
-
-<div align="center">
 
 | Mode | Description | Best For |
 |------|-------------|----------|
 | **Direct** (default) | Sends your exact query to the search engine | Short, focused questions. Works best with semantic search engines like Tavily and Brave. |
 | **Smart Keywords (YAKE)** | Extracts key terms from your prompt before searching | Very long prompts or multi-paragraph context that might confuse the search engine. Uses [YAKE](https://github.com/LIAAD/yake) keyword extraction. |
-
-</div>
 
 > **Tip:** Start with **Direct** mode. Only switch to **YAKE** if you notice search results are irrelevant when pasting long documents or complex prompts.
 
@@ -342,20 +318,14 @@ Connect to any OpenAI-compatible API:
 
 ### Keyboard Shortcuts
 
-<div align="center">
-
 | Key | Action |
 |-----|--------|
 | `Enter` | Send message |
 | `Shift+Enter` | New line in input |
 
-</div>
-
 ---
 
 ## Tech Stack
-
-<div align="center">
 
 | Component | Technology |
 |-----------|------------|
@@ -364,8 +334,6 @@ Connect to any OpenAI-compatible API:
 | **Styling** | CSS with "Midnight Glass" dark theme |
 | **Storage** | JSON files in `data/` directory |
 | **Package Management** | uv (Python), npm (JavaScript) |
-
-</div>
 
 ---
 
