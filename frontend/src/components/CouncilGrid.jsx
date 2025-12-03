@@ -34,14 +34,25 @@ const getProviderInfo = (modelId) => {
     if (id.startsWith('custom:')) return PROVIDER_CONFIG.custom;
     if (id.startsWith('ollama:')) return PROVIDER_CONFIG.ollama;
     if (id.startsWith('groq:')) return PROVIDER_CONFIG.groq;
+
+    // OpenRouter handling
     if (id.startsWith('openrouter:') || id.includes('openrouter')) return PROVIDER_CONFIG.openrouter;
 
-    // Then check for specific model identifiers (only if no prefix matched)
+    // Check for OpenRouter path format (provider/model)
+    // This ensures ALL OpenRouter models get the OpenRouter icon if they follow the standard format
+    if (id.includes('/')) return PROVIDER_CONFIG.openrouter;
+
+    // Check for specific model identifiers (only if no prefix matched)
     if (id.includes('gpt') || id.includes('openai')) return PROVIDER_CONFIG.openai;
     if (id.includes('claude') || id.includes('anthropic')) return PROVIDER_CONFIG.anthropic;
     if (id.includes('gemini') || id.includes('google')) return PROVIDER_CONFIG.google;
     if (id.includes('mistral') || id.includes('mixtral')) return PROVIDER_CONFIG.mistral;
     if (id.includes('deepseek')) return PROVIDER_CONFIG.deepseek;
+
+    // Fallback for other known patterns
+    if (id.includes('llama') || id.includes('grok')) {
+        return PROVIDER_CONFIG.openrouter;
+    }
 
     return PROVIDER_CONFIG.default;
 };

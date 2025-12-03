@@ -13,7 +13,7 @@ import asyncio
 from . import storage
 from .council import generate_conversation_title, generate_search_query, stage1_collect_responses, stage2_collect_rankings, stage3_synthesize_final, calculate_aggregate_rankings, PROVIDERS
 from .search import perform_web_search, SearchProvider
-from .settings import get_settings, update_settings, Settings, DEFAULT_COUNCIL_MODELS, DEFAULT_CHAIRMAN_MODEL
+from .settings import get_settings, update_settings, Settings, DEFAULT_COUNCIL_MODELS, DEFAULT_CHAIRMAN_MODEL, AVAILABLE_MODELS
 
 app = FastAPI(title="LLM Council Plus API")
 
@@ -588,6 +588,20 @@ async def update_app_settings(request: UpdateSettingsRequest):
         "stage2_prompt": settings.stage2_prompt,
         "stage3_prompt": settings.stage3_prompt,
     }
+
+
+@app.get("/api/models")
+async def get_models():
+    """Get available models for council selection."""
+    from .openrouter import fetch_models
+    
+    # Try dynamic fetch first
+    dynamic_models = await fetch_models()
+    if dynamic_models:
+        return {"models": dynamic_models}
+        
+    # Fallback to static list
+    return {"models": AVAILABLE_MODELS}
 
 
 @app.get("/api/models/direct")
