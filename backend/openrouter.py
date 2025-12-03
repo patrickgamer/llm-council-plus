@@ -163,3 +163,54 @@ async def query_models_parallel(
     # Map models to their responses
     return {model: response for model, response in zip(models, responses)}
 
+
+async def fetch_models() -> List[Dict[str, Any]]:
+    """
+    Fetch available models from OpenRouter API.
+    Returns a list of model definitions compatible with the frontend.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get("https://openrouter.ai/api/v1/models")
+            if response.status_code != 200:
+                print(f"Failed to fetch OpenRouter models: {response.status_code}")
+                return []
+            
+            data = response.json()
+            models = []
+            for item in data.get("data", []):
+                # Determine if free based on pricing
+                pricing = item.get("pricing", {})
+                is_free = (
+                    float(pricing.get("prompt", 0)) == 0 and 
+                    float(pricing.get("completion", 0)) == 0
+                )
+                
+                # Extract provider from ID (e.g. "google/gemini" -> "Google")
+                model_id = item.get("id", "")
+                provider = "OpenRouter" # Default
+                if "/" in model_id:
+                    provider_slug = model_id.split("/")[0]
+                    # Capitalize nicely
+                    if provider_slug == "openai": provider = "OpenAI"
+                    elif provider_slug == "anthropic": provider = "Anthropic"
+                    elif provider_slug == "google": provider = "Google"
+                    elif provider_slug == "meta-llama": provider = "Meta"
+                    elif provider_slug == "mistralai": provider = "Mistral"
+                    elif provider_slug == "deepseek": provider = "DeepSeek"
+                    else: provider = provider_slug.title()
+                
+                models.append({
+                    "id": model_id,
+                    "name": item.get("name"),
+                    "provider": provider, 
+                    "source": "openrouter", # Explicitly set for frontend grouping
+                    "context_length": item.get("context_length"),
+                    "is_free": is_free,
+                    "pricing": pricing
+                })
+            
+            return models
+    except Exception as e:
+        print(f"Error fetching OpenRouter models: {e}")
+        return []

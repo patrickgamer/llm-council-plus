@@ -1190,8 +1190,21 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     const all = getAllAvailableModels();
     if (!showFreeOnly) return all;
 
-    // Filter to free models, but keep Ollama models (they're always "free")
-    return all.filter(m => m.is_free || m.id.startsWith('ollama:'));
+    // Filter logic:
+    // 1. If it's an OpenRouter model, checks if it's free.
+    // 2. If it's NOT OpenRouter (Direct, Ollama, Custom), keep it visible.
+    return all.filter(m => {
+      // Check if it's an OpenRouter model
+      const isOpenRouter = m.source === 'openrouter' || m.provider === 'OpenRouter' || m.id.startsWith('openrouter:') || m.id.includes('/');
+
+      // If it is OpenRouter, apply the free filter
+      if (isOpenRouter) {
+        return m.is_free;
+      }
+
+      // Otherwise (Direct, Ollama, Custom), always show
+      return true;
+    });
   };
 
   // Get models available for chairman (paid models only, unless it's Ollama)

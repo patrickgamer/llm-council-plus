@@ -17,14 +17,16 @@ export default function SearchableModelSelect({
   const groupedOptions = models.reduce((acc, model) => {
     // Determine group label
     let groupLabel;
-    const provider = model.provider || (model.id?.startsWith('ollama:') ? 'Ollama' : 'OpenRouter');
+    // Use source field if available, otherwise fallback to provider check
+    const isOpenRouter = model.source === 'openrouter' || model.provider === 'OpenRouter';
+    const isOllama = model.id?.startsWith('ollama:') || model.provider === 'Ollama';
 
-    if (provider === 'OpenRouter') {
+    if (isOpenRouter) {
       groupLabel = 'OpenRouter (Cloud)';
-    } else if (provider === 'Ollama') {
+    } else if (isOllama) {
       groupLabel = 'Local (Ollama)';
     } else {
-      groupLabel = `${provider} (Direct)`;
+      groupLabel = `${model.provider || 'Direct'} (Direct)`;
     }
 
     if (!acc[groupLabel]) {
