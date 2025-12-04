@@ -81,6 +81,7 @@ async def query_model(
 
                 return {
                     'content': message.get('content'),
+                    'reasoning': message.get('reasoning'), # Capture reasoning field (common in DeepSeek R1/reasoning models)
                     'reasoning_details': message.get('reasoning_details'),
                     'error': None
                 }
@@ -88,6 +89,13 @@ async def query_model(
         except httpx.HTTPStatusError as e:
             print(f"HTTP error querying model {model}: {e}")
             last_error = f"http_{e.response.status_code}"
+        except httpx.RemoteProtocolError as e:
+            # This handles "peer closed connection without sending complete message body"
+            retry_delay = INITIAL_RETRY_DELAY * (2 ** attempt)
+            print(f"Remote protocol error (disconnect) on {model}: {e}. Retrying in {retry_delay}s...")
+            last_error = "protocol_error"
+            await asyncio.sleep(retry_delay)
+            continue
         except httpx.TimeoutException:
             print(f"Timeout querying model {model}")
             last_error = "timeout"
