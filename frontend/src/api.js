@@ -2,7 +2,17 @@
  * API client for the LLM Council backend.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+// Dynamically determine API base URL based on current hostname
+// This allows the app to work on both localhost and network IPs
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  const hostname = window.location.hostname;
+  return `http://${hostname}:8001`;
+};
+
+const API_BASE = getApiBase();
 
 export const api = {
   /**

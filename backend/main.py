@@ -17,10 +17,11 @@ from .settings import get_settings, update_settings, Settings, DEFAULT_COUNCIL_M
 
 app = FastAPI(title="LLM Council Plus API")
 
-# Enable CORS for local development
+# Enable CORS for local development and network access
+# Allow requests from any hostname on ports 5173 and 3000 (frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origin_regex=r"http://.*:(5173|3000)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
