@@ -22,9 +22,14 @@ Instead of asking a single LLM (like ChatGPT or Claude) for an answer, **LLM Cou
 The result? More balanced, accurate, and thoroughly vetted responses that leverage the collective intelligence of multiple AI models.
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=NUmQFGAwD3g">
-    <img src="https://img.youtube.com/vi/NUmQFGAwD3g/0.jpg" alt="LLM Council Plus Demo" width="100%">
-  </a>
+  <div align="center">
+    <a href="https://www.youtube.com/watch?v=HOdyIyccOCE" target="_blank">
+      <img src="https://img.youtube.com/vi/HOdyIyccOCE/hqdefault.jpg" alt="LLM Council Plus Long Demo" width="48%">
+    </a>
+    <a href="https://www.youtube.com/watch?v=NUmQFGAwD3g" target="_blank">
+      <img src="https://img.youtube.com/vi/NUmQFGAwD3g/hqdefault.jpg" alt="LLM Council Plus Short Demo" width="48%">
+    </a>
+  </div>
 </p>
 
 ---
