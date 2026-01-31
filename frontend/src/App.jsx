@@ -207,27 +207,20 @@ function App() {
   };
 
   const handleNewConversation = async () => {
-    // Check if current conversation is empty - delete it first
-    let updatedConversations = conversations;
-    if (currentConversationId) {
-      const currentConv = conversations.find(c => c.id === currentConversationId);
-      if (currentConv && currentConv.message_count === 0) {
-        try {
-          await api.deleteConversation(currentConversationId);
-          updatedConversations = conversations.filter(c => c.id !== currentConversationId);
-          setConversations(updatedConversations);
-        } catch (error) {
-          console.error('Failed to delete empty conversation:', error);
-        }
-      }
+    // Check if there's already an empty/unused conversation
+    const existingEmpty = conversations.find(conv => !conv.title && conv.message_count === 0);
+
+    if (existingEmpty) {
+      // Reuse the existing empty conversation instead of creating a new one
+      setCurrentConversationId(existingEmpty.id);
+      return;
     }
 
-    // Now create new conversation
     try {
       const newConv = await api.createConversation();
       setConversations([
         { id: newConv.id, created_at: newConv.created_at, message_count: 0 },
-        ...updatedConversations,
+        ...conversations,
       ]);
       setCurrentConversationId(newConv.id);
     } catch (error) {
@@ -235,20 +228,7 @@ function App() {
     }
   };
 
-  const handleSelectConversation = async (id) => {
-    // Before switching, check if current conversation is empty and delete it
-    if (currentConversationId && currentConversationId !== id) {
-      const currentConv = conversations.find(c => c.id === currentConversationId);
-      if (currentConv && currentConv.message_count === 0) {
-        // Delete the empty conversation silently
-        try {
-          await api.deleteConversation(currentConversationId);
-          setConversations(prev => prev.filter(c => c.id !== currentConversationId));
-        } catch (error) {
-          console.error('Failed to delete empty conversation:', error);
-        }
-      }
-    }
+  const handleSelectConversation = (id) => {
     setCurrentConversationId(id);
   };
 
@@ -687,17 +667,27 @@ function App() {
     }
   };
 
-  // Close sidebar after selecting on mobile
+  // Mobile sidebar handlers
   const handleMobileSelectConversation = (id) => {
     handleSelectConversation(id);
-    setSidebarOpen(false);
+    setSidebarOpen(false); // Close sidebar on mobile after selection
+  };
+
+  const handleMobileNewConversation = async () => {
+    await handleNewConversation();
+    setSidebarOpen(false); // Close sidebar on mobile after creating new conversation
+  };
+
+  const handleMobileOpenSettings = () => {
+    setShowSettings(true);
+    setSidebarOpen(false); // Close sidebar on mobile
   };
 
   return (
     <div className="app">
-      {/* Mobile hamburger button */}
+      {/* Mobile hamburger menu button */}
       <button 
-        className="mobile-menu-btn"
+        className="mobile-menu-btn" 
         onClick={() => setSidebarOpen(true)}
         aria-label="Open menu"
       >
@@ -708,9 +698,9 @@ function App() {
         conversations={conversations}
         currentConversationId={currentConversationId}
         onSelectConversation={handleMobileSelectConversation}
-        onNewConversation={handleNewConversation}
+        onNewConversation={handleMobileNewConversation}
         onDeleteConversation={handleDeleteConversation}
-        onOpenSettings={() => { setShowSettings(true); setSidebarOpen(false); }}
+        onOpenSettings={handleMobileOpenSettings}
         isLoading={isLoading}
         onAbort={handleAbort}
         isOpen={sidebarOpen}

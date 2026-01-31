@@ -21,7 +21,7 @@ app = FastAPI(title="LLM Council Plus API")
 # Allow requests from any hostname on ports 5173 and 3000 (frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://.*:(5173|3000)",
+    allow_origin_regex=r"http://.*:(5173|5174|3000)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -143,6 +143,8 @@ async def send_message_stream(conversation_id: str, body: SendMessageRequest, re
                 provider = SearchProvider(settings.search_provider)
 
                 # Set API keys if configured
+                if settings.serper_api_key and provider == SearchProvider.SERPER:
+                    os.environ["SERPER_API_KEY"] = settings.serper_api_key
                 if settings.tavily_api_key and provider == SearchProvider.TAVILY:
                     os.environ["TAVILY_API_KEY"] = settings.tavily_api_key
                 if settings.brave_api_key and provider == SearchProvider.BRAVE:
@@ -166,14 +168,16 @@ async def send_message_stream(conversation_id: str, body: SendMessageRequest, re
                 # Run search (now fully async for Tavily/Brave, threaded only for DuckDuckGo)
                 search_result = await perform_web_search(
                     search_query, 
-                    5, 
+                    settings.search_result_count,  # Configurable result count (default 8)
                     provider, 
                     settings.full_content_results,
-                    settings.search_keyword_extraction
+                    settings.search_keyword_extraction,
+                    hybrid_mode=settings.search_hybrid_mode  # Combine web+news for DuckDuckGo
                 )
                 search_context = search_result["results"]
                 extracted_query = search_result["extracted_query"]
-                yield f"data: {json.dumps({'type': 'search_complete', 'data': {'search_query': search_query, 'extracted_query': extracted_query, 'search_context': search_context, 'provider': provider.value}})}\n\n"
+                search_intent = search_result.get("intent", "unknown")
+                yield f"data: {json.dumps({'type': 'search_complete', 'data': {'search_query': search_query, 'extracted_query': extracted_query, 'search_context': search_context, 'provider': provider.value, 'intent': search_intent}})}\n\n"
                 await asyncio.sleep(0.05)
 
             # Stage 1: Collect responses
@@ -319,6 +323,7 @@ class UpdateSettingsRequest(BaseModel):
     custom_endpoint_api_key: Optional[str] = None
 
     # API Keys
+    serper_api_key: Optional[str] = None
     tavily_api_key: Optional[str] = None
     brave_api_key: Optional[str] = None
     openrouter_api_key: Optional[str] = None
@@ -378,6 +383,7 @@ async def get_app_settings():
         # Don't send the API key to frontend for security
 
         # API Key Status
+        "serper_api_key_set": bool(settings.serper_api_key),
         "tavily_api_key_set": bool(settings.tavily_api_key),
         "brave_api_key_set": bool(settings.brave_api_key),
         "openrouter_api_key_set": bool(settings.openrouter_api_key),
@@ -487,6 +493,12 @@ async def update_app_settings(request: UpdateSettingsRequest):
     if request.stage3_prompt is not None:
         updates["stage3_prompt"] = request.stage3_prompt
 
+    if request.serper_api_key is not None:
+        updates["serper_api_key"] = request.serper_api_key
+        # Also set in environment for immediate use
+        if request.serper_api_key:
+            os.environ["SERPER_API_KEY"] = request.serper_api_key
+
     if request.tavily_api_key is not None:
         updates["tavily_api_key"] = request.tavily_api_key
         # Also set in environment for immediate use
@@ -583,6 +595,7 @@ async def update_app_settings(request: UpdateSettingsRequest):
         "custom_endpoint_url": settings.custom_endpoint_url,
 
         # API Key Status
+        "serper_api_key_set": bool(settings.serper_api_key),
         "tavily_api_key_set": bool(settings.tavily_api_key),
         "brave_api_key_set": bool(settings.brave_api_key),
         "openrouter_api_key_set": bool(settings.openrouter_api_key),
@@ -685,6 +698,41 @@ async def test_brave_api(request: TestBraveRequest):
                     "Accept": "application/json",
                     "Accept-Encoding": "gzip",
                     "X-Subscription-Token": request.api_key or settings.brave_api_key,
+                },
+            )
+
+            if response.status_code == 200:
+                return {"success": True, "message": "API key is valid"}
+            elif response.status_code == 401 or response.status_code == 403:
+                return {"success": False, "message": "Invalid API key"}
+            else:
+                return {"success": False, "message": f"API error: {response.status_code}"}
+
+    except httpx.TimeoutException:
+        return {"success": False, "message": "Request timed out"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+
+class TestSerperRequest(BaseModel):
+    """Request to test Serper API key."""
+    api_key: str | None = None
+
+
+@app.post("/api/settings/test-serper")
+async def test_serper_api(request: TestSerperRequest):
+    """Test Serper API key with a simple search."""
+    import httpx
+    settings = get_settings()
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                "https://google.serper.dev/search",
+                json={"q": "test", "num": 1},
+                headers={
+                    "X-API-KEY": request.api_key or settings.serper_api_key,
+                    "Content-Type": "application/json",
                 },
             )
 

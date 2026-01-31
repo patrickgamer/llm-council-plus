@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { api } from '../api';
 import SearchableModelSelect from './SearchableModelSelect';
 import ProviderSettings from './settings/ProviderSettings';
@@ -18,6 +18,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
   const [selectedSearchProvider, setSelectedSearchProvider] = useState('duckduckgo');
   const [searchKeywordExtraction, setSearchKeywordExtraction] = useState('direct');
   const [fullContentResults, setFullContentResults] = useState(3);
+  const [searchResultCount, setSearchResultCount] = useState(8);
+  const [searchHybridMode, setSearchHybridMode] = useState(true);
 
   // OpenRouter State
   const [openrouterApiKey, setOpenrouterApiKey] = useState('');
@@ -59,10 +61,13 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
   const [keyValidationStatus, setKeyValidationStatus] = useState({});
 
   // Search API Keys
+  const [serperApiKey, setSerperApiKey] = useState('');
   const [tavilyApiKey, setTavilyApiKey] = useState('');
   const [braveApiKey, setBraveApiKey] = useState('');
+  const [isTestingSerper, setIsTestingSerper] = useState(false);
   const [isTestingTavily, setIsTestingTavily] = useState(false);
   const [isTestingBrave, setIsTestingBrave] = useState(false);
+  const [serperTestResult, setSerperTestResult] = useState(null);
   const [tavilyTestResult, setTavilyTestResult] = useState(null);
   const [braveTestResult, setBraveTestResult] = useState(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -108,6 +113,10 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  // Ref for chairman select to focus on validation error
+  const chairmanSelectRef = useRef(null);
 
   // Remote/Local filter toggles per model type
   const [councilMemberFilters, setCouncilMemberFilters] = useState({});  // Per-member filters (indexed by member index)
@@ -130,6 +139,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       if (selectedSearchProvider !== settings.search_provider) return true;
       if (searchKeywordExtraction !== (settings.search_keyword_extraction || 'direct')) return true;
       if (fullContentResults !== (settings.full_content_results ?? 3)) return true;
+      if (searchResultCount !== (settings.search_result_count ?? 8)) return true;
+      if (searchHybridMode !== (settings.search_hybrid_mode ?? true)) return true;
       if (showFreeOnly !== (settings.show_free_only ?? false)) return true;
 
       // Enabled Providers
@@ -162,6 +173,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     selectedSearchProvider,
     searchKeywordExtraction,
     fullContentResults,
+    searchResultCount,
+    searchHybridMode,
     showFreeOnly,
     enabledProviders,
     directProviderToggles,
@@ -217,6 +230,91 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
 
   }, [enabledProviders, chairmanFilter]);
 
+  // Auto-save council configuration with debounce
+  const autoSaveTimerRef = useRef(null);
+  const isInitialLoadRef = useRef(true);
+  const prevCouncilModelsRef = useRef(null);
+  const prevChairmanModelRef = useRef(null);
+
+  useEffect(() => {
+    // Skip auto-save on initial load
+    if (isInitialLoadRef.current) {
+      return;
+    }
+
+    // Skip if settings haven't loaded yet
+    if (!settings) {
+      return;
+    }
+
+    // Check if council models or chairman actually changed (not just re-rendered)
+    const councilModelsStr = JSON.stringify(councilModels);
+    const prevCouncilModelsStr = JSON.stringify(prevCouncilModelsRef.current);
+    const chairmanChanged = chairmanModel !== prevChairmanModelRef.current;
+    const councilChanged = councilModelsStr !== prevCouncilModelsStr;
+
+    if (!councilChanged && !chairmanChanged) {
+      return;
+    }
+
+    // Update refs
+    prevCouncilModelsRef.current = councilModels;
+    prevChairmanModelRef.current = chairmanModel;
+
+    // Skip if all values are empty (reset state)
+    const hasValidCouncil = councilModels.some(m => m && m.length > 0);
+    const hasValidChairman = chairmanModel && chairmanModel.length > 0;
+    if (!hasValidCouncil && !hasValidChairman) {
+      return;
+    }
+
+    // Clear any existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Debounce auto-save by 1 second
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        await api.updateSettings({
+          council_models: councilModels,
+          chairman_model: chairmanModel
+        });
+        console.log('Auto-saved council configuration');
+      } catch (err) {
+        console.error('Failed to auto-save council configuration:', err);
+      }
+    }, 1000);
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [councilModels, chairmanModel, settings]);
+
+  // Clear validation errors when chairman or council members change
+  useEffect(() => {
+    if (Object.keys(validationErrors).length > 0) {
+      // Check if the validation error condition is now fixed
+      const hasEmptyMembers = councilModels.some(m => !m || m.length === 0);
+      const hasMemberError = Object.keys(validationErrors).some(k => k.startsWith('member_'));
+      const hasChairmanError = validationErrors.chairman;
+      
+      // Clear member error if all members are now filled
+      if (hasMemberError && !hasEmptyMembers) {
+        setValidationErrors({});
+        setError(null);
+      }
+      // Clear chairman error if chairman is now selected
+      else if (hasChairmanError && chairmanModel && chairmanModel.length > 0) {
+        setValidationErrors({});
+        setError(null);
+      }
+    }
+  }, [chairmanModel, councilModels, validationErrors]);
+
   const loadSettings = async () => {
     try {
       const data = await api.getSettings();
@@ -227,6 +325,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       setSelectedSearchProvider(data.search_provider || 'duckduckgo');
       setSearchKeywordExtraction(data.search_keyword_extraction || 'direct');
       setFullContentResults(data.full_content_results ?? 3);
+      setSearchResultCount(data.search_result_count ?? 8);
+      setSearchHybridMode(data.search_hybrid_mode ?? true);
       setShowFreeOnly(data.show_free_only ?? false);
 
       // Enabled Providers - use saved settings if available, otherwise auto-enable based on configured keys
@@ -261,11 +361,21 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       }
 
       // Council Configuration (unified)
-      setCouncilModels(data.council_models || []);
-      setChairmanModel(data.chairman_model || '');
+      const loadedCouncilModels = data.council_models || [];
+      const loadedChairmanModel = data.chairman_model || '';
+      setCouncilModels(loadedCouncilModels);
+      setChairmanModel(loadedChairmanModel);
       setCouncilTemperature(data.council_temperature ?? 0.5);
       setChairmanTemperature(data.chairman_temperature ?? 0.4);
       setStage2Temperature(data.stage2_temperature ?? 0.3);
+
+      // Initialize refs for auto-save tracking (prevents auto-save on initial load)
+      prevCouncilModelsRef.current = loadedCouncilModels;
+      prevChairmanModelRef.current = loadedChairmanModel;
+      // Mark initial load as complete after a short delay to let state settle
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 500);
 
       // Remote/Local filters - load from saved settings
       if (data.council_member_filters) {
@@ -396,6 +506,41 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     }
   };
 
+  const handleTestSerper = async () => {
+    if (!serperApiKey && !settings.serper_api_key_set) {
+      setSerperTestResult({ success: false, message: 'Please enter an API key first' });
+      return;
+    }
+    setIsTestingSerper(true);
+    setSerperTestResult(null);
+    try {
+      // If input is empty but key is configured, pass null to test the saved key
+      const keyToTest = serperApiKey || null;
+      const result = await api.testSerperKey(keyToTest);
+      setSerperTestResult(result);
+
+      // Auto-save API key AND provider selection if validation succeeds
+      if (result.success && serperApiKey) {
+        // Save both the API key and switch provider to Serper
+        await api.updateSettings({ 
+          serper_api_key: serperApiKey,
+          search_provider: 'serper'
+        });
+        setSerperApiKey(''); // Clear input after save
+
+        // Reload settings (will now have serper as provider)
+        await loadSettings();
+
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      }
+    } catch (err) {
+      setSerperTestResult({ success: false, message: 'Test failed' });
+    } finally {
+      setIsTestingSerper(false);
+    }
+  };
+
   const handleTestTavily = async () => {
     if (!tavilyApiKey && !settings.tavily_api_key_set) {
       setTavilyTestResult({ success: false, message: 'Please enter an API key first' });
@@ -409,12 +554,16 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       const result = await api.testTavilyKey(keyToTest);
       setTavilyTestResult(result);
 
-      // Auto-save API key if validation succeeds and a new key was provided
+      // Auto-save API key AND provider selection if validation succeeds
       if (result.success && tavilyApiKey) {
-        await api.updateSettings({ tavily_api_key: tavilyApiKey });
+        // Save both the API key and switch provider to Tavily
+        await api.updateSettings({ 
+          tavily_api_key: tavilyApiKey,
+          search_provider: 'tavily'
+        });
         setTavilyApiKey(''); // Clear input after save
 
-        // Reload settings
+        // Reload settings (will now have tavily as provider)
         await loadSettings();
 
         setSuccess(true);
@@ -440,12 +589,16 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       const result = await api.testBraveKey(keyToTest);
       setBraveTestResult(result);
 
-      // Auto-save API key if validation succeeds and a new key was provided
+      // Auto-save API key AND provider selection if validation succeeds
       if (result.success && braveApiKey) {
-        await api.updateSettings({ brave_api_key: braveApiKey });
+        // Save both the API key and switch provider to Brave
+        await api.updateSettings({ 
+          brave_api_key: braveApiKey,
+          search_provider: 'brave'
+        });
         setBraveApiKey(''); // Clear input after save
 
-        // Reload settings
+        // Reload settings (will now have brave as provider)
         await loadSettings();
 
         setSuccess(true);
@@ -922,6 +1075,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       search_provider: selectedSearchProvider,
       search_keyword_extraction: searchKeywordExtraction,
       full_content_results: fullContentResults,
+      search_result_count: searchResultCount,
+      search_hybrid_mode: searchHybridMode,
       show_free_only: showFreeOnly,
 
       // Enabled Providers
@@ -970,6 +1125,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
         if (config.search_provider) setSelectedSearchProvider(config.search_provider);
         if (config.search_keyword_extraction) setSearchKeywordExtraction(config.search_keyword_extraction);
         if (config.full_content_results !== undefined) setFullContentResults(config.full_content_results);
+        if (config.search_result_count !== undefined) setSearchResultCount(config.search_result_count);
+        if (config.search_hybrid_mode !== undefined) setSearchHybridMode(config.search_hybrid_mode);
         if (config.show_free_only !== undefined) setShowFreeOnly(config.show_free_only);
 
         // Apply Enabled Providers
@@ -1024,15 +1181,52 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
     setError(null);
     setSuccess(false);
+    setValidationErrors({});
+
+    // Validate council configuration
+    const hasAnyCouncilMember = councilModels.some(m => m && m.length > 0);
+    const emptyMemberIndices = councilModels
+      .map((m, i) => (!m || m.length === 0) ? i : -1)
+      .filter(i => i !== -1);
+    const hasEmptyMembers = emptyMemberIndices.length > 0;
+    const hasChairman = chairmanModel && chairmanModel.length > 0;
+
+    // If there are empty council member slots, show error
+    if (hasEmptyMembers) {
+      const firstEmptyIndex = emptyMemberIndices[0];
+      setValidationErrors({ [`member_${firstEmptyIndex}`]: true });
+      setError(`Please select a model for Member ${firstEmptyIndex + 1} or remove the empty slot.`);
+      setActiveSection('council');
+      return;
+    }
+
+    // If council members are selected but no chairman, show error
+    if (hasAnyCouncilMember && !hasChairman) {
+      setValidationErrors({ chairman: true });
+      setError('Please select a Chairman to complete the council configuration.');
+      
+      // Focus on the chairman select and scroll to council section
+      setActiveSection('council');
+      setTimeout(() => {
+        if (chairmanSelectRef.current) {
+          chairmanSelectRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          chairmanSelectRef.current.focus();
+        }
+      }, 100);
+      return;
+    }
+
+    setIsSaving(true);
 
     try {
       const updates = {
         search_provider: selectedSearchProvider,
         search_keyword_extraction: searchKeywordExtraction,
         full_content_results: fullContentResults,
+        search_result_count: searchResultCount,
+        search_hybrid_mode: searchHybridMode,
         show_free_only: showFreeOnly,
 
         // Enabled Providers
@@ -1305,7 +1499,6 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
             {activeSection === 'council' && (
               <CouncilConfig
                 settings={settings}
-                ollamaStatus={ollamaStatus}
                 // State
                 enabledProviders={enabledProviders}
                 setEnabledProviders={setEnabledProviders}
@@ -1339,6 +1532,9 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
                 handleAddCouncilMember={handleAddCouncilMember}
                 setActiveSection={setActiveSection}
                 setActivePromptTab={setActivePromptTab}
+                // Validation
+                validationErrors={validationErrors}
+                chairmanSelectRef={chairmanSelectRef}
               />
             )}
 
@@ -1361,6 +1557,13 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
                 settings={settings}
                 selectedSearchProvider={selectedSearchProvider}
                 setSelectedSearchProvider={setSelectedSearchProvider}
+                // Serper (Google)
+                serperApiKey={serperApiKey}
+                setSerperApiKey={setSerperApiKey}
+                handleTestSerper={handleTestSerper}
+                isTestingSerper={isTestingSerper}
+                serperTestResult={serperTestResult}
+                setSerperTestResult={setSerperTestResult}
                 // Tavily
                 tavilyApiKey={tavilyApiKey}
                 setTavilyApiKey={setTavilyApiKey}
@@ -1380,6 +1583,10 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
                 setFullContentResults={setFullContentResults}
                 searchKeywordExtraction={searchKeywordExtraction}
                 setSearchKeywordExtraction={setSearchKeywordExtraction}
+                searchResultCount={searchResultCount}
+                setSearchResultCount={setSearchResultCount}
+                searchHybridMode={searchHybridMode}
+                setSearchHybridMode={setSearchHybridMode}
               />
             )}
 
@@ -1432,31 +1639,6 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
                   >
                     Reset to Defaults
                   </button>
-                </div>
-
-                <div className="subsection version-info" style={{ marginTop: '32px', paddingTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                  <h4>About</h4>
-                  <div className="version-details">
-                    <div className="version-row">
-                      <span className="version-label">Version</span>
-                      <span className="version-value">0.2.0</span>
-                    </div>
-                    <div className="version-row">
-                      <span className="version-label">Created by</span>
-                      <span className="version-value">Jacob Ben-David</span>
-                    </div>
-                    <div className="version-row">
-                      <span className="version-label">Repository</span>
-                      <a 
-                        href="https://github.com/jbendavi/llm-council-plus" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="version-link"
-                      >
-                        GitHub
-                      </a>
-                    </div>
-                  </div>
                 </div>
               </section>
             )}

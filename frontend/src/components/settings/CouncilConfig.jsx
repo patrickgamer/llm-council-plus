@@ -44,7 +44,10 @@ export default function CouncilConfig({
     handleRemoveCouncilMember,
     handleAddCouncilMember,
     setActiveSection,
-    setActivePromptTab
+    setActivePromptTab,
+    // Validation
+    validationErrors = {},
+    chairmanSelectRef
 }) {
     // Helper: Check if a source is configured (has API key or is connected)
     const isSourceConfigured = (source) => {
@@ -270,8 +273,9 @@ export default function CouncilConfig({
                     <div className="council-members">
                         {councilModels.map((modelId, index) => {
                             const memberFilter = getMemberFilter(index);
+                            const hasValidationError = validationErrors[`member_${index}`];
                             return (
-                                <div key={index} className="council-member-row">
+                                <div key={index} className={`council-member-row ${hasValidationError ? 'validation-error' : ''}`}>
                                     <span className="member-label">Member {index + 1}</span>
                                     <div className="model-type-toggle">
                                         <button
@@ -293,7 +297,7 @@ export default function CouncilConfig({
                                             Local
                                         </button>
                                     </div>
-                                    <div className="model-select-wrapper">
+                                    <div className={`model-select-wrapper ${hasValidationError ? 'validation-error' : ''}`}>
                                         <SearchableModelSelect
                                             models={filterByRemoteLocal(filteredModels, memberFilter)}
                                             value={modelId}
@@ -303,6 +307,11 @@ export default function CouncilConfig({
                                             isLoading={isLoadingModels}
                                             allModels={allModels}
                                         />
+                                        {hasValidationError && (
+                                            <div className="validation-error-message">
+                                                ⚠️ Please select a model or remove this member
+                                            </div>
+                                        )}
                                     </div>
                                     {index >= 2 && (
                                         <button
@@ -416,7 +425,10 @@ export default function CouncilConfig({
                             </button>
                         </div>
                     </div>
-                    <div className="chairman-selection">
+                    <div 
+                        className={`chairman-selection ${validationErrors.chairman ? 'validation-error' : ''}`}
+                        ref={chairmanSelectRef}
+                    >
                         <SearchableModelSelect
                             models={filterByRemoteLocal(filteredModels, chairmanFilter)}
                             value={chairmanModel}
@@ -425,6 +437,11 @@ export default function CouncilConfig({
                             isLoading={isLoadingModels}
                             allModels={allModels}
                         />
+                        {validationErrors.chairman && (
+                            <div className="validation-error-message">
+                                ⚠️ Chairman is required when council members are selected
+                            </div>
+                        )}
                     </div>
 
                     {/* Chairman Heat Slider */}
