@@ -9,6 +9,11 @@ from .config import get_openrouter_api_key, OPENROUTER_API_URL
 MAX_RETRIES = 2
 INITIAL_RETRY_DELAY = 1.0  # seconds
 
+# Known broken/deprecated models that OpenRouter lists but don't actually work
+BROKEN_MODELS = {
+    "openai/gpt-oss-120b:free",  # Returns 404
+}
+
 
 async def query_model(
     model: str,
@@ -187,6 +192,12 @@ async def fetch_models() -> List[Dict[str, Any]]:
             data = response.json()
             models = []
             for item in data.get("data", []):
+                model_id = item.get("id", "")
+                
+                # Skip known broken models
+                if model_id in BROKEN_MODELS:
+                    continue
+                
                 # Determine if free based on pricing
                 pricing = item.get("pricing", {})
                 is_free = (
@@ -195,7 +206,6 @@ async def fetch_models() -> List[Dict[str, Any]]:
                 )
                 
                 # Extract provider from ID (e.g. "google/gemini" -> "Google")
-                model_id = item.get("id", "")
                 provider = "OpenRouter" # Default
                 if "/" in model_id:
                     provider_slug = model_id.split("/")[0]
