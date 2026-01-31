@@ -12,6 +12,7 @@ export default function ExecutionModeToggle({ value, onChange, disabled }) {
             {modes.map(mode => (
                 <button
                     key={mode.id}
+                    type="button" // Prevent form submission when inside a form
                     role="radio"
                     aria-checked={value === mode.id}
                     className={`mode-option ${value === mode.id ? 'active' : ''}`}
