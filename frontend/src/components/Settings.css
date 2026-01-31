@@ -1363,6 +1363,52 @@ input:checked+.slider:before {
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
+/* Version Info Section */
+.version-info h4 {
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.version-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.version-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.4);
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+}
+
+.version-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.version-value {
+  color: var(--text-primary);
+  font-family: var(--font-code);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.version-link {
+  color: var(--accent-primary);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.version-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
 /* ==================== MOBILE RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .settings-modal {
