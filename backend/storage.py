@@ -8,6 +8,9 @@ from pathlib import Path
 from .config import DATA_DIR
 
 
+INDEX_FILE_NAME = "conversations_index.json"
+
+
 def ensure_data_dir():
     """Ensure the data directory exists."""
     Path(DATA_DIR).mkdir(parents=True, exist_ok=True)
@@ -16,6 +19,99 @@ def ensure_data_dir():
 def get_conversation_path(conversation_id: str) -> str:
     """Get the file path for a conversation."""
     return os.path.join(DATA_DIR, f"{conversation_id}.json")
+
+
+def get_index_path() -> str:
+    """Get the file path for the conversation index."""
+    return os.path.join(DATA_DIR, INDEX_FILE_NAME)
+
+
+def _load_index() -> Optional[List[Dict[str, Any]]]:
+    """Load the conversation index file."""
+    path = get_index_path()
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _save_index(index: List[Dict[str, Any]]):
+    """Save the conversation index file."""
+    ensure_data_dir()
+    path = get_index_path()
+    with open(path, 'w') as f:
+        json.dump(index, f, indent=2)
+
+
+def rebuild_index() -> List[Dict[str, Any]]:
+    """
+    Rebuild the conversation index from actual conversation files.
+    Use this fallback if index is missing or corrupted.
+    """
+    ensure_data_dir()
+    index = []
+    
+    for filename in os.listdir(DATA_DIR):
+        if filename.endswith('.json') and filename != INDEX_FILE_NAME:
+            path = os.path.join(DATA_DIR, filename)
+            try:
+                with open(path, 'r') as f:
+                    data = json.load(f)
+                    index.append({
+                        "id": data["id"],
+                        "created_at": data["created_at"],
+                        "title": data.get("title", "New Conversation"),
+                        "message_count": len(data["messages"])
+                    })
+            except (json.JSONDecodeError, OSError):
+                continue
+
+    # Sort by creation time, newest first
+    index.sort(key=lambda x: x["created_at"], reverse=True)
+    _save_index(index)
+    return index
+
+
+def _update_index_entry(conversation: Dict[str, Any]):
+    """Update or add a single entry in the index."""
+    index = _load_index()
+    if index is None:
+        index = rebuild_index()
+        return  # rebuild already includes the current state if file was saved
+
+    # Create metadata entry
+    entry = {
+        "id": conversation["id"],
+        "created_at": conversation["created_at"],
+        "title": conversation.get("title", "New Conversation"),
+        "message_count": len(conversation["messages"])
+    }
+
+    # Remove existing entry if present
+    index = [item for item in index if item["id"] != conversation["id"]]
+    
+    # Add new entry
+    index.append(entry)
+    
+    # Sort and save
+    index.sort(key=lambda x: x["created_at"], reverse=True)
+    _save_index(index)
+
+
+def _remove_from_index(conversation_id: str):
+    """Remove an entry from the index."""
+    index = _load_index()
+    if index is None:
+        return  # No index to remove from
+
+    # Filter out the deleted conversation
+    new_index = [item for item in index if item["id"] != conversation_id]
+    
+    if len(new_index) != len(index):
+        _save_index(new_index)
 
 
 def create_conversation(conversation_id: str) -> Dict[str, Any]:
@@ -41,6 +137,9 @@ def create_conversation(conversation_id: str) -> Dict[str, Any]:
     path = get_conversation_path(conversation_id)
     with open(path, 'w') as f:
         json.dump(conversation, f, indent=2)
+
+    # Update index
+    _update_index_entry(conversation)
 
     return conversation
 
@@ -77,34 +176,28 @@ def save_conversation(conversation: Dict[str, Any]):
     with open(path, 'w') as f:
         json.dump(conversation, f, indent=2)
 
+    # Update index
+    _update_index_entry(conversation)
+
 
 def list_conversations() -> List[Dict[str, Any]]:
     """
     List all conversations (metadata only).
+    Uses cached index file for O(1) performance.
 
     Returns:
         List of conversation metadata dicts
     """
     ensure_data_dir()
 
-    conversations = []
-    for filename in os.listdir(DATA_DIR):
-        if filename.endswith('.json'):
-            path = os.path.join(DATA_DIR, filename)
-            with open(path, 'r') as f:
-                data = json.load(f)
-                # Return metadata only
-                conversations.append({
-                    "id": data["id"],
-                    "created_at": data["created_at"],
-                    "title": data.get("title", "New Conversation"),
-                    "message_count": len(data["messages"])
-                })
-
-    # Sort by creation time, newest first
-    conversations.sort(key=lambda x: x["created_at"], reverse=True)
-
-    return conversations
+    # Try to load from index first
+    index = _load_index()
+    
+    # If index missing or invalid, rebuild it
+    if index is None:
+        return rebuild_index()
+        
+    return index
 
 
 def add_user_message(conversation_id: str, content: str):
@@ -226,4 +319,8 @@ def delete_conversation(conversation_id: str) -> bool:
         return False
 
     os.remove(path)
+    
+    # Update index
+    _remove_from_index(conversation_id)
+    
     return True
