@@ -166,14 +166,16 @@ async def send_message_stream(conversation_id: str, body: SendMessageRequest, re
                 # Run search (now fully async for Tavily/Brave, threaded only for DuckDuckGo)
                 search_result = await perform_web_search(
                     search_query, 
-                    5, 
+                    settings.search_result_count,  # Configurable result count (default 8)
                     provider, 
                     settings.full_content_results,
-                    settings.search_keyword_extraction
+                    settings.search_keyword_extraction,
+                    hybrid_mode=settings.search_hybrid_mode  # Combine web+news for DuckDuckGo
                 )
                 search_context = search_result["results"]
                 extracted_query = search_result["extracted_query"]
-                yield f"data: {json.dumps({'type': 'search_complete', 'data': {'search_query': search_query, 'extracted_query': extracted_query, 'search_context': search_context, 'provider': provider.value}})}\n\n"
+                search_intent = search_result.get("intent", "unknown")
+                yield f"data: {json.dumps({'type': 'search_complete', 'data': {'search_query': search_query, 'extracted_query': extracted_query, 'search_context': search_context, 'provider': provider.value, 'intent': search_intent}})}\n\n"
                 await asyncio.sleep(0.05)
 
             # Stage 1: Collect responses

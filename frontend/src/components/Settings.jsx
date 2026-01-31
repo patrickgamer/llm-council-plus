@@ -18,6 +18,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
   const [selectedSearchProvider, setSelectedSearchProvider] = useState('duckduckgo');
   const [searchKeywordExtraction, setSearchKeywordExtraction] = useState('direct');
   const [fullContentResults, setFullContentResults] = useState(3);
+  const [searchResultCount, setSearchResultCount] = useState(8);
+  const [searchHybridMode, setSearchHybridMode] = useState(true);
 
   // OpenRouter State
   const [openrouterApiKey, setOpenrouterApiKey] = useState('');
@@ -130,6 +132,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       if (selectedSearchProvider !== settings.search_provider) return true;
       if (searchKeywordExtraction !== (settings.search_keyword_extraction || 'direct')) return true;
       if (fullContentResults !== (settings.full_content_results ?? 3)) return true;
+      if (searchResultCount !== (settings.search_result_count ?? 8)) return true;
+      if (searchHybridMode !== (settings.search_hybrid_mode ?? true)) return true;
       if (showFreeOnly !== (settings.show_free_only ?? false)) return true;
 
       // Enabled Providers
@@ -162,6 +166,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     selectedSearchProvider,
     searchKeywordExtraction,
     fullContentResults,
+    searchResultCount,
+    searchHybridMode,
     showFreeOnly,
     enabledProviders,
     directProviderToggles,
@@ -227,6 +233,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       setSelectedSearchProvider(data.search_provider || 'duckduckgo');
       setSearchKeywordExtraction(data.search_keyword_extraction || 'direct');
       setFullContentResults(data.full_content_results ?? 3);
+      setSearchResultCount(data.search_result_count ?? 8);
+      setSearchHybridMode(data.search_hybrid_mode ?? true);
       setShowFreeOnly(data.show_free_only ?? false);
 
       // Enabled Providers - use saved settings if available, otherwise auto-enable based on configured keys
@@ -922,6 +930,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       search_provider: selectedSearchProvider,
       search_keyword_extraction: searchKeywordExtraction,
       full_content_results: fullContentResults,
+      search_result_count: searchResultCount,
+      search_hybrid_mode: searchHybridMode,
       show_free_only: showFreeOnly,
 
       // Enabled Providers
@@ -970,6 +980,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
         if (config.search_provider) setSelectedSearchProvider(config.search_provider);
         if (config.search_keyword_extraction) setSearchKeywordExtraction(config.search_keyword_extraction);
         if (config.full_content_results !== undefined) setFullContentResults(config.full_content_results);
+        if (config.search_result_count !== undefined) setSearchResultCount(config.search_result_count);
+        if (config.search_hybrid_mode !== undefined) setSearchHybridMode(config.search_hybrid_mode);
         if (config.show_free_only !== undefined) setShowFreeOnly(config.show_free_only);
 
         // Apply Enabled Providers
@@ -1033,6 +1045,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
         search_provider: selectedSearchProvider,
         search_keyword_extraction: searchKeywordExtraction,
         full_content_results: fullContentResults,
+        search_result_count: searchResultCount,
+        search_hybrid_mode: searchHybridMode,
         show_free_only: showFreeOnly,
 
         // Enabled Providers
@@ -1305,7 +1319,6 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
             {activeSection === 'council' && (
               <CouncilConfig
                 settings={settings}
-                ollamaStatus={ollamaStatus}
                 // State
                 enabledProviders={enabledProviders}
                 setEnabledProviders={setEnabledProviders}
@@ -1380,6 +1393,10 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
                 setFullContentResults={setFullContentResults}
                 searchKeywordExtraction={searchKeywordExtraction}
                 setSearchKeywordExtraction={setSearchKeywordExtraction}
+                searchResultCount={searchResultCount}
+                setSearchResultCount={setSearchResultCount}
+                searchHybridMode={searchHybridMode}
+                setSearchHybridMode={setSearchHybridMode}
               />
             )}
 
@@ -1432,31 +1449,6 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
                   >
                     Reset to Defaults
                   </button>
-                </div>
-
-                <div className="subsection version-info" style={{ marginTop: '32px', paddingTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                  <h4>About</h4>
-                  <div className="version-details">
-                    <div className="version-row">
-                      <span className="version-label">Version</span>
-                      <span className="version-value">0.2.0</span>
-                    </div>
-                    <div className="version-row">
-                      <span className="version-label">Created by</span>
-                      <span className="version-value">Jacob Ben-David</span>
-                    </div>
-                    <div className="version-row">
-                      <span className="version-label">Repository</span>
-                      <a 
-                        href="https://github.com/jbendavi/llm-council-plus" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="version-link"
-                      >
-                        GitHub
-                      </a>
-                    </div>
-                  </div>
                 </div>
               </section>
             )}

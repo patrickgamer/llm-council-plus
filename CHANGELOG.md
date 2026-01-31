@@ -5,6 +5,20 @@ All notable changes to LLM Council Plus will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-01-31
+
+### Added
+- **DuckDuckGo Search Optimization**: Intelligent query processing with intent detection, hybrid web+news search, and relevance reranking
+- **Search Settings**: Configurable result count (5-15) and hybrid mode toggle for DuckDuckGo
+- **Query Intent Detection**: Automatically detects current events, factual, comparison, and research queries
+
+### Changed
+- **Improved Font Readability**: Switched markdown headers and model names from stylized 'Syne' to readable 'Plus Jakarta Sans'
+- **Search Query Processing**: DuckDuckGo now automatically removes conversational fluff and adds temporal context
+
+### Fixed
+- YAKE keyword extraction setting now only shows for Tavily/Brave (DuckDuckGo has built-in optimization)
+
 ## [0.2.0] - 2026-01-31
 
 ### Added

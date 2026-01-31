@@ -1,7 +1,7 @@
 """Web search module with multiple provider support."""
 
 from ddgs import DDGS
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple, Set
 from enum import Enum
 import logging
 import httpx
@@ -9,8 +9,13 @@ import os
 import time
 import asyncio
 import yake
+import re
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
+# Current year for temporal context
+CURRENT_YEAR = datetime.now().year
 
 # YAKE keyword extractor configuration
 _keyword_extractor: Optional[yake.KeywordExtractor] = None
@@ -61,6 +66,318 @@ ROLE_PLAY_TITLES = {
     'expert', 'specialist', 'consultant', 'advisor', 'professor', 'scientist',
     'economist', 'strategist', 'researcher', 'journalist', 'writer', 'editor'
 }
+
+# Current event indicators for intent detection
+CURRENT_EVENT_INDICATORS = {
+    'latest', 'recent', 'today', 'now', 'current', 'breaking', 'news',
+    'this week', 'this month', 'this year', 'yesterday', 'tomorrow',
+    'stock', 'price', 'market', 'trading', 'shares', 'crypto', 'bitcoin',
+    'election', 'vote', 'poll', 'announcement', 'release', 'launch',
+    'update', 'new', 'just', 'happening', 'live', 'weather', 'forecast'
+}
+
+# Company/organization patterns that suggest current event queries
+COMPANY_PATTERNS = [
+    r'\b(apple|google|microsoft|amazon|meta|tesla|nvidia|openai|anthropic)\b',
+    r'\b(stock|shares|price|market cap|earnings|revenue)\b',
+    r'\b(ceo|cfo|founder|executive|announces?|announced?)\b'
+]
+
+# Conversational fluff patterns to remove
+CONVERSATIONAL_FLUFF = [
+    r'^(can you |could you |please |help me |i want to |i need to |i\'d like to )',
+    r'^(tell me (about )?|explain (to me )?(what |how |why )?|describe )',
+    r'^(what is |what are |who is |who are |what\'s )',
+    r'^(how do i |how can i |how to |what\'s the |what is the )',
+    r'^(give me |show me |find |search for |look up )',
+    r'(and )?(tell me (about )?|explain )',  # Mid-sentence fluff after role-play removal
+    r'( please\??)$',
+    r'\?+$'
+]
+
+
+# =============================================================================
+# QUERY INTENT DETECTION
+# =============================================================================
+
+def detect_query_intent(query: str) -> str:
+    """
+    Detect the intent of a user query to determine optimal search strategy.
+    
+    Returns:
+        "current_event" - Recent news, prices, live updates
+        "factual" - General knowledge, definitions, how-to
+        "comparison" - Comparing things, pros/cons
+        "research" - In-depth research topics
+    """
+    query_lower = query.lower()
+    
+    # Check for current event indicators
+    current_event_score = 0
+    
+    # Direct indicator words
+    for indicator in CURRENT_EVENT_INDICATORS:
+        if indicator in query_lower:
+            current_event_score += 1
+    
+    # Year references (current or recent years)
+    if re.search(rf'\b(20{CURRENT_YEAR % 100}|20{(CURRENT_YEAR - 1) % 100})\b', query_lower):
+        current_event_score += 2
+    
+    # Company/business patterns
+    for pattern in COMPANY_PATTERNS:
+        if re.search(pattern, query_lower, re.IGNORECASE):
+            current_event_score += 1
+    
+    # Check for comparison intent
+    comparison_patterns = [
+        r'\bvs\.?\b', r'\bversus\b', r'\bcompare\b', r'\bcomparison\b',
+        r'\bdifference between\b', r'\bwhich is better\b', r'\bpros and cons\b',
+        r'\badvantages\b', r'\bdisadvantages\b'
+    ]
+    for pattern in comparison_patterns:
+        if re.search(pattern, query_lower):
+            return "comparison"
+    
+    # Check for research/in-depth topics
+    research_patterns = [
+        r'\bhistory of\b', r'\borigin of\b', r'\bevolution of\b',
+        r'\bimpact of\b', r'\beffects of\b', r'\bcauses of\b',
+        r'\btheory\b', r'\bresearch\b', r'\bstudy\b', r'\banalysis\b'
+    ]
+    for pattern in research_patterns:
+        if re.search(pattern, query_lower):
+            return "research"
+    
+    # Score-based decision
+    if current_event_score >= 2:
+        return "current_event"
+    
+    return "factual"
+
+
+# =============================================================================
+# SMART QUERY OPTIMIZER
+# =============================================================================
+
+def optimize_search_query(user_query: str) -> Dict:
+    """
+    Transform a user query into optimized search queries.
+    
+    Returns:
+        {
+            "web_query": "optimized query for web search",
+            "news_query": "optimized query for news search",
+            "intent": "current_event|factual|comparison|research",
+            "original_query": "the original query",
+            "entities": ["extracted", "key", "terms"]
+        }
+    """
+    # Detect intent first
+    intent = detect_query_intent(user_query)
+    
+    # Clean the query - remove conversational fluff
+    cleaned = user_query.strip()
+    for pattern in CONVERSATIONAL_FLUFF:
+        cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.strip()
+    
+    # If cleaning removed too much, use original
+    if len(cleaned) < 5:
+        cleaned = user_query.strip()
+    
+    # Remove role-play patterns
+    cleaned = re.sub(
+        r'\b(act(ing)?|behave|pretend|imagine you are|you are|be) as (a|an|the)?\s*\w+(\s+\w+)?\b',
+        '', cleaned, flags=re.IGNORECASE
+    )
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    
+    # Remove leading articles that don't add search value
+    cleaned = re.sub(r'^(the|a|an)\s+', '', cleaned, flags=re.IGNORECASE)
+    
+    # Extract key entities (nouns, proper nouns, numbers)
+    # Simple approach: keep capitalized words, numbers, and quoted phrases
+    entities = []
+    
+    # Extract quoted phrases
+    quoted = re.findall(r'"([^"]+)"', cleaned)
+    entities.extend(quoted)
+    
+    # Extract potential entities (capitalized sequences, numbers with context)
+    words = cleaned.split()
+    for i, word in enumerate(words):
+        # Skip common words
+        if word.lower() in NOISE_WORDS:
+            continue
+        # Keep capitalized words (likely proper nouns)
+        if word[0].isupper() and len(word) > 1:
+            entities.append(word)
+        # Keep numbers with context (e.g., "2026", "$100")
+        if re.match(r'^[\$€£]?\d+[\.,]?\d*[%]?$', word):
+            entities.append(word)
+    
+    # Build optimized queries
+    web_query = cleaned
+    news_query = cleaned
+    
+    # For current events, add temporal context
+    if intent == "current_event":
+        # Check if year is already mentioned
+        if not re.search(rf'\b20\d{{2}}\b', cleaned):
+            news_query = f"{cleaned} {CURRENT_YEAR}"
+        else:
+            news_query = cleaned
+        # For web query, keep as-is since it may need general results too
+    
+    # For comparisons, structure the query
+    if intent == "comparison":
+        # Keep as-is, comparison queries usually work well
+        pass
+    
+    # Truncate to reasonable length for search engines
+    web_query = web_query[:150].strip()
+    news_query = news_query[:150].strip()
+    
+    logger.info(f"Query optimization: intent={intent}, web_query='{web_query[:50]}...'")
+    
+    return {
+        "web_query": web_query,
+        "news_query": news_query,
+        "intent": intent,
+        "original_query": user_query,
+        "entities": list(set(entities))[:10]  # Dedupe and limit
+    }
+
+
+# =============================================================================
+# RELEVANCE SCORING
+# =============================================================================
+
+def _tokenize(text: str) -> Set[str]:
+    """Simple tokenization for relevance scoring."""
+    # Lowercase and extract words
+    words = re.findall(r'\b[a-zA-Z0-9]+\b', text.lower())
+    # Filter out very short words and common stop words
+    stop_words = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
+                  'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
+                  'would', 'could', 'should', 'may', 'might', 'must', 'shall',
+                  'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from',
+                  'as', 'into', 'through', 'during', 'before', 'after', 'above',
+                  'below', 'between', 'under', 'again', 'further', 'then', 'once',
+                  'here', 'there', 'when', 'where', 'why', 'how', 'all', 'each',
+                  'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor',
+                  'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
+                  'can', 'just', 'don', 'now', 'and', 'but', 'or', 'because',
+                  'this', 'that', 'these', 'those', 'it', 'its'}
+    return {w for w in words if len(w) > 2 and w not in stop_words}
+
+
+def score_result_relevance(result: Dict, query_terms: Set[str], intent: str = "factual") -> float:
+    """
+    Score a search result's relevance to the query.
+    
+    Args:
+        result: Search result dict with 'title', 'summary', 'url' keys
+        query_terms: Set of query terms (tokenized)
+        intent: Query intent for context-specific scoring
+    
+    Returns:
+        Relevance score from 0.0 to 1.0
+    """
+    if not query_terms:
+        return 0.5  # Neutral score if no terms
+    
+    score = 0.0
+    
+    # Title match (highest weight - 0.4)
+    title = result.get('title', '')
+    title_terms = _tokenize(title)
+    title_overlap = len(query_terms & title_terms)
+    title_score = min(title_overlap / max(len(query_terms), 1), 1.0)
+    score += title_score * 0.4
+    
+    # Summary/body match (medium weight - 0.35)
+    summary = result.get('summary', '') or result.get('body', '')
+    summary_terms = _tokenize(summary)
+    summary_overlap = len(query_terms & summary_terms)
+    summary_score = min(summary_overlap / max(len(query_terms), 1), 1.0)
+    score += summary_score * 0.35
+    
+    # URL quality signals (low weight - 0.15)
+    url = result.get('url', '').lower()
+    url_score = 0.5  # Base score
+    
+    # Boost authoritative domains
+    authoritative_domains = [
+        'wikipedia.org', 'britannica.com', 'reuters.com', 'apnews.com',
+        'bbc.com', 'bbc.co.uk', 'nytimes.com', 'wsj.com', 'bloomberg.com',
+        'techcrunch.com', 'theverge.com', 'arstechnica.com', 'wired.com',
+        'nature.com', 'science.org', 'gov', 'edu'
+    ]
+    for domain in authoritative_domains:
+        if domain in url:
+            url_score = 0.9
+            break
+    
+    # Penalize low-quality indicators
+    low_quality_indicators = ['pinterest', 'facebook.com', 'twitter.com', 
+                              'instagram.com', 'tiktok.com', 'reddit.com/user/']
+    for indicator in low_quality_indicators:
+        if indicator in url:
+            url_score = 0.2
+            break
+    
+    score += url_score * 0.15
+    
+    # Freshness bonus for current events (0.1 weight)
+    if intent == "current_event":
+        # Check for recent date indicators in summary
+        freshness_score = 0.3  # Base
+        current_year_str = str(CURRENT_YEAR)
+        if current_year_str in summary or current_year_str in title:
+            freshness_score = 0.8
+        # Check for time indicators
+        time_indicators = ['today', 'yesterday', 'this week', 'hours ago', 'minutes ago']
+        for indicator in time_indicators:
+            if indicator in summary.lower():
+                freshness_score = 1.0
+                break
+        score += freshness_score * 0.1
+    else:
+        # For non-current-event queries, give neutral freshness score
+        score += 0.5 * 0.1
+    
+    return min(score, 1.0)
+
+
+def rerank_results(results: List[Dict], query: str, intent: str = "factual") -> List[Dict]:
+    """
+    Rerank search results by relevance to the query.
+    
+    Args:
+        results: List of search result dicts
+        query: Original user query
+        intent: Query intent
+    
+    Returns:
+        Reranked list of results (highest relevance first)
+    """
+    query_terms = _tokenize(query)
+    
+    # Score each result
+    scored_results = []
+    for result in results:
+        relevance = score_result_relevance(result, query_terms, intent)
+        result['relevance_score'] = relevance
+        scored_results.append(result)
+    
+    # Sort by relevance score (descending)
+    scored_results.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+    
+    logger.info(f"Reranked {len(results)} results. Top score: {scored_results[0].get('relevance_score', 0):.2f}" if scored_results else "No results to rerank")
+    
+    return scored_results
 
 
 def _preprocess_query(query: str) -> str:
@@ -205,109 +522,220 @@ class SearchProvider(str, Enum):
 
 async def perform_web_search(
     query: str,
-    max_results: int = 5,
+    max_results: int = 8,
     provider: SearchProvider = SearchProvider.DUCKDUCKGO,
     full_content_results: int = 3,
-    keyword_extraction: str = "direct"
+    keyword_extraction: str = "direct",
+    hybrid_mode: bool = True
 ) -> Dict[str, str]:
     """
     Perform a web search using the specified provider.
 
     Args:
         query: The search query
-        max_results: Maximum number of results to return
+        max_results: Maximum number of results to return (default 8, up from 5)
         provider: Which search provider to use
         full_content_results: Number of top results to fetch full content for (0 to disable)
         keyword_extraction: "yake" for keyword extraction, "direct" for raw query
+        hybrid_mode: For DuckDuckGo, whether to combine web+news search (default True)
 
     Returns:
-        Dict with 'results' (formatted string) and 'extracted_query' (keywords used)
+        Dict with 'results' (formatted string), 'extracted_query' (query used), 'intent' (detected intent)
     """
-    # Extract keywords from user query if enabled, otherwise use direct query
-    if keyword_extraction == "yake":
-        extracted_query = extract_search_keywords(query)
+    # For DuckDuckGo with new optimization, we handle query processing internally
+    # For other providers, use the legacy keyword extraction if enabled
+    if provider != SearchProvider.DUCKDUCKGO:
+        if keyword_extraction == "yake":
+            extracted_query = extract_search_keywords(query)
+        else:
+            extracted_query = query.strip()
     else:
+        # DuckDuckGo uses internal query optimization
         extracted_query = query.strip()
 
     try:
         if provider == SearchProvider.TAVILY:
             results = await _search_tavily(extracted_query, max_results)
+            return {"results": results, "extracted_query": extracted_query, "intent": "unknown"}
         elif provider == SearchProvider.BRAVE:
             results = await _search_brave(extracted_query, max_results, full_content_results)
+            return {"results": results, "extracted_query": extracted_query, "intent": "unknown"}
         else:
-            # DuckDuckGo - now async with parallel Jina fetching (DDGS library calls are still sync but wrapped)
-            results = await _search_duckduckgo(extracted_query, max_results, full_content_results)
+            # DuckDuckGo - now with hybrid search, optimization, and reranking
+            query_info = optimize_search_query(query)
+            results = await _search_duckduckgo(
+                query, 
+                max_results, 
+                full_content_results,
+                hybrid_mode=hybrid_mode
+            )
+            return {
+                "results": results, 
+                "extracted_query": query_info["web_query"],
+                "intent": query_info["intent"]
+            }
 
-        return {"results": results, "extracted_query": extracted_query}
     except Exception as e:
         logger.error(f"Error performing web search with {provider}: {str(e)}")
         return {
             "results": "[System Note: Web search was attempted but failed. Please answer based on your internal knowledge.]",
-            "extracted_query": extracted_query
+            "extracted_query": extracted_query,
+            "intent": "unknown"
         }
 
 
-async def _search_duckduckgo(query: str, max_results: int = 5, full_content_results: int = 3) -> str:
+async def _search_duckduckgo(
+    query: str, 
+    max_results: int = 8, 
+    full_content_results: int = 3,
+    hybrid_mode: bool = True
+) -> str:
     """
-    Search using DuckDuckGo (news search for better results).
-    Optionally fetches full content via Jina Reader for top N results IN PARALLEL.
+    Search using DuckDuckGo with hybrid web+news strategy and intelligent reranking.
+    
+    Features:
+    - Query optimization (removes fluff, adds temporal context)
+    - Hybrid search (combines web and news results)
+    - Relevance-based reranking
+    - Parallel content fetching via Jina Reader
+    
+    Args:
+        query: User's search query
+        max_results: Maximum final results to return
+        full_content_results: Number of top results to fetch full content for
+        hybrid_mode: Whether to combine web and news search
     """
     start_time = time.time()
+    
+    # Step 1: Optimize the query
+    query_info = optimize_search_query(query)
+    intent = query_info["intent"]
+    web_query = query_info["web_query"]
+    news_query = query_info["news_query"]
+    
+    print(f"🔍 Search intent: {intent}")
+    print(f"🔍 Web query: '{web_query[:60]}...'")
+    if hybrid_mode:
+        print(f"🔍 News query: '{news_query[:60]}...'")
 
-    # Run the sync DDGS search in a thread to avoid blocking the event loop
+    # Step 2: Run searches (hybrid or single based on intent and settings)
     def _do_ddgs_search():
         """Sync helper for DDGS library which doesn't support async."""
-        search_results_data = []
-        urls_to_fetch = []
-
+        web_results = []
+        news_results = []
+        
+        # Determine search strategy based on intent
+        do_web_search = True
+        do_news_search = hybrid_mode and intent in ("current_event", "factual")
+        
+        # Adjust result counts for hybrid mode
+        if hybrid_mode and do_news_search:
+            web_count = max(max_results - 2, 4)  # More web results
+            news_count = max(4, max_results // 2)  # Fewer news results
+        else:
+            web_count = max_results + 2  # Fetch extra to allow filtering
+            news_count = 0
+        
         for attempt in range(MAX_RETRIES + 1):
             try:
                 with DDGS() as ddgs:
-                    # Use text search (general web) instead of news for better coverage of facts/prices
-                    search_results = list(ddgs.text(query, max_results=max_results))
-
-                    for i, result in enumerate(search_results, 1):
-                        title = result.get('title', 'No Title')
-                        href = result.get('url', result.get('href', '#'))
-                        body = result.get('body', result.get('excerpt', 'No description available.'))
-                        source = result.get('source', '')
-
-                        search_results_data.append({
-                            'index': i,
-                            'title': title,
-                            'url': href,
-                            'source': source,
-                            'summary': body,
-                            'content': None
-                        })
-
-                        # Queue top N results for full content fetch
-                        if full_content_results > 0 and i <= full_content_results and href and href != '#':
-                            urls_to_fetch.append((i - 1, href))
+                    # Web search
+                    if do_web_search:
+                        try:
+                            raw_web = list(ddgs.text(web_query, max_results=web_count))
+                            for result in raw_web:
+                                web_results.append({
+                                    'title': result.get('title', 'No Title'),
+                                    'url': result.get('url', result.get('href', '#')),
+                                    'summary': result.get('body', result.get('excerpt', '')),
+                                    'source': result.get('source', ''),
+                                    'type': 'web',
+                                    'content': None
+                                })
+                        except Exception as e:
+                            logger.warning(f"Web search failed: {e}")
+                    
+                    # News search (for hybrid mode)
+                    if do_news_search and news_count > 0:
+                        try:
+                            raw_news = list(ddgs.news(news_query, max_results=news_count))
+                            for result in raw_news:
+                                news_results.append({
+                                    'title': result.get('title', 'No Title'),
+                                    'url': result.get('url', result.get('link', '#')),
+                                    'summary': result.get('body', result.get('excerpt', '')),
+                                    'source': result.get('source', ''),
+                                    'type': 'news',
+                                    'date': result.get('date', ''),
+                                    'content': None
+                                })
+                        except Exception as e:
+                            logger.warning(f"News search failed: {e}")
+                    
                     break  # Success, exit retry loop
-
+                    
             except Exception as e:
                 if "Ratelimit" in str(e) and attempt < MAX_RETRIES:
                     logger.warning(f"DuckDuckGo rate limit hit, retrying in {RETRY_DELAY}s...")
                     time.sleep(RETRY_DELAY * (attempt + 1))
                 else:
                     raise
-
-        return search_results_data, urls_to_fetch
+        
+        return web_results, news_results
 
     # Execute sync DDGS search in thread pool
-    search_results_data, urls_to_fetch = await asyncio.to_thread(_do_ddgs_search)
-
-    # Fetch full content via Jina Reader for top results IN PARALLEL
+    web_results, news_results = await asyncio.to_thread(_do_ddgs_search)
+    
+    print(f"📊 Got {len(web_results)} web results, {len(news_results)} news results")
+    
+    # Step 3: Merge and deduplicate results
+    all_results = []
+    seen_urls = set()
+    
+    # Add web results first
+    for r in web_results:
+        url_normalized = r['url'].lower().rstrip('/')
+        if url_normalized not in seen_urls:
+            seen_urls.add(url_normalized)
+            all_results.append(r)
+    
+    # Add news results (avoid duplicates)
+    for r in news_results:
+        url_normalized = r['url'].lower().rstrip('/')
+        if url_normalized not in seen_urls:
+            seen_urls.add(url_normalized)
+            all_results.append(r)
+    
+    if not all_results:
+        return "No web search results found."
+    
+    # Step 4: Rerank by relevance to original query
+    all_results = rerank_results(all_results, query, intent)
+    
+    # Step 5: Take top results
+    final_results = all_results[:max_results]
+    
+    # Assign final indices
+    for i, r in enumerate(final_results, 1):
+        r['index'] = i
+    
+    print(f"🎯 Selected top {len(final_results)} results after reranking")
+    
+    # Step 6: Fetch full content for top N results IN PARALLEL
+    urls_to_fetch = []
+    for i, r in enumerate(final_results):
+        if full_content_results > 0 and i < full_content_results:
+            url = r.get('url', '')
+            if url and url != '#':
+                urls_to_fetch.append((i, url))
+    
     if urls_to_fetch:
         elapsed = time.time() - start_time
         remaining = SEARCH_TIMEOUT_BUDGET - elapsed
 
         if remaining > 5:  # Need at least 5s to fetch content
-            # Calculate timeout for each fetch (use remaining time, capped at 25s)
             fetch_timeout = min(remaining, 25.0)
 
-            # Create async tasks for all URLs
             async def fetch_with_index(idx: int, url: str):
                 """Wrapper to return index along with content for result mapping."""
                 content = await _fetch_with_jina(url, timeout=fetch_timeout)
@@ -315,14 +743,12 @@ async def _search_duckduckgo(query: str, max_results: int = 5, full_content_resu
 
             tasks = [fetch_with_index(idx, url) for idx, url in urls_to_fetch]
 
-            # Fetch all in parallel, handling individual failures gracefully
             print(f"⚡ Starting PARALLEL fetch of {len(tasks)} URLs via Jina Reader...")
             fetch_start = time.time()
             results = await asyncio.gather(*tasks, return_exceptions=True)
             fetch_elapsed = time.time() - fetch_start
-            print(f"⚡ Parallel fetch completed in {fetch_elapsed:.2f}s (sequential would be ~{fetch_elapsed * len(tasks):.0f}s)")
+            print(f"⚡ Parallel fetch completed in {fetch_elapsed:.2f}s")
 
-            # Process results
             successful = 0
             for result in results:
                 if isinstance(result, Exception):
@@ -332,27 +758,25 @@ async def _search_duckduckgo(query: str, max_results: int = 5, full_content_resu
                 idx, content = result
                 if content:
                     successful += 1
-                    # If content is very short (likely paywall/cookie wall/failed parse),
-                    # append the original summary to ensure we have some info.
                     if len(content) < 500:
-                        original_summary = search_results_data[idx]['summary']
-                        content += f"\n\n[System Note: Full content fetch yielded limited text. Appending original summary.]\nOriginal Summary: {original_summary}"
-                    search_results_data[idx]['content'] = content
+                        original_summary = final_results[idx]['summary']
+                        content += f"\n\n[System Note: Full content fetch yielded limited text.]\nOriginal Summary: {original_summary}"
+                    final_results[idx]['content'] = content
             print(f"⚡ Successfully fetched content from {successful}/{len(tasks)} URLs")
         else:
-            logger.warning(f"Search timeout budget exhausted, skipping content fetches")
+            logger.warning("Search timeout budget exhausted, skipping content fetches")
 
-    if not search_results_data:
-        return "No web search results found."
-
-    # Format results
+    # Step 7: Format results
     formatted = []
-    for r in search_results_data:
+    for r in final_results:
         text = f"Result {r['index']}:\nTitle: {r['title']}\nURL: {r['url']}"
-        if r['source']:
+        if r.get('source'):
             text += f"\nSource: {r['source']}"
-        if r['content']:
-            # Truncate content to ~2000 chars
+        if r.get('type') == 'news' and r.get('date'):
+            text += f"\nDate: {r['date']}"
+        if r.get('relevance_score'):
+            text += f"\n[Relevance: {r['relevance_score']:.2f}]"
+        if r.get('content'):
             content = r['content'][:2000]
             if len(r['content']) > 2000:
                 content += "..."

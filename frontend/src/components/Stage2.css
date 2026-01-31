@@ -196,8 +196,9 @@
 }
 
 .model-name-large {
+  font-family: var(--font-ui);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
 }
 

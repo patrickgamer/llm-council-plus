@@ -110,11 +110,11 @@ body::after {
 .markdown-content h2,
 .markdown-content h3,
 .markdown-content h4 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
+  font-weight: 700;
   color: var(--text-primary);
   margin-top: 1.5em;
   margin-bottom: 0.5em;
-  font-weight: 600;
 }
 
 .markdown-content p {

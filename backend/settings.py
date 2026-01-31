@@ -70,6 +70,8 @@ class Settings(BaseModel):
     """Application settings."""
     search_provider: SearchProvider = SearchProvider.DUCKDUCKGO
     search_keyword_extraction: str = "direct"  # "direct" or "yake"
+    search_result_count: int = 8  # Number of search results (5-15, default 8)
+    search_hybrid_mode: bool = True  # Combine web+news search for DuckDuckGo
 
     # API Keys
     tavily_api_key: Optional[str] = None
