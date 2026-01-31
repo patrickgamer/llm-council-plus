@@ -23,6 +23,7 @@ function App() {
   const [chairmanModel, setChairmanModel] = useState(null);
   const [searchProvider, setSearchProvider] = useState('duckduckgo');
   const [executionMode, setExecutionMode] = useState('full');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const abortControllerRef = useRef(null);
   const requestIdRef = useRef(0);
   const isInitialMount = useRef(true);
@@ -666,17 +667,39 @@ function App() {
     }
   };
 
+  // Mobile sidebar handlers
+  const handleMobileSelectConversation = (id) => {
+    handleSelectConversation(id);
+    setSidebarOpen(false); // Close sidebar on mobile after selection
+  };
+
+  const handleMobileOpenSettings = () => {
+    setShowSettings(true);
+    setSidebarOpen(false); // Close sidebar on mobile
+  };
+
   return (
     <div className="app">
+      {/* Mobile hamburger menu button */}
+      <button 
+        className="mobile-menu-btn" 
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open menu"
+      >
+        <span className="hamburger-icon"></span>
+      </button>
+
       <Sidebar
         conversations={conversations}
         currentConversationId={currentConversationId}
-        onSelectConversation={handleSelectConversation}
+        onSelectConversation={handleMobileSelectConversation}
         onNewConversation={handleNewConversation}
         onDeleteConversation={handleDeleteConversation}
-        onOpenSettings={() => setShowSettings(true)}
+        onOpenSettings={handleMobileOpenSettings}
         isLoading={isLoading}
         onAbort={handleAbort}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
       <ChatInterface
         conversation={currentConversation}
