@@ -11,7 +11,9 @@ INITIAL_RETRY_DELAY = 1.0  # seconds
 
 # Known broken/deprecated models that OpenRouter lists but don't actually work
 BROKEN_MODELS = {
-    "openai/gpt-oss-120b:free",  # Returns 404
+    "openai/gpt-oss-120b:free",   # Returns 404
+    "openai/gpt-oss-20b:free",    # Returns 404
+    "moonshotai/kimi-k2:free",    # Returns 404 - superseded by kimi-k2-0905
 }
 
 

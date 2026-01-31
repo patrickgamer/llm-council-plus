@@ -316,11 +316,11 @@ async def _search_duckduckgo(query: str, max_results: int = 5, full_content_resu
             tasks = [fetch_with_index(idx, url) for idx, url in urls_to_fetch]
 
             # Fetch all in parallel, handling individual failures gracefully
-            logger.info(f"⚡ Starting PARALLEL fetch of {len(tasks)} URLs via Jina Reader...")
+            print(f"⚡ Starting PARALLEL fetch of {len(tasks)} URLs via Jina Reader...")
             fetch_start = time.time()
             results = await asyncio.gather(*tasks, return_exceptions=True)
             fetch_elapsed = time.time() - fetch_start
-            logger.info(f"⚡ Parallel fetch completed in {fetch_elapsed:.2f}s (sequential would be ~{fetch_elapsed * len(tasks):.0f}s)")
+            print(f"⚡ Parallel fetch completed in {fetch_elapsed:.2f}s (sequential would be ~{fetch_elapsed * len(tasks):.0f}s)")
 
             # Process results
             successful = 0
@@ -338,7 +338,7 @@ async def _search_duckduckgo(query: str, max_results: int = 5, full_content_resu
                         original_summary = search_results_data[idx]['summary']
                         content += f"\n\n[System Note: Full content fetch yielded limited text. Appending original summary.]\nOriginal Summary: {original_summary}"
                     search_results_data[idx]['content'] = content
-            logger.info(f"⚡ Successfully fetched content from {successful}/{len(tasks)} URLs")
+            print(f"⚡ Successfully fetched content from {successful}/{len(tasks)} URLs")
         else:
             logger.warning(f"Search timeout budget exhausted, skipping content fetches")
 
