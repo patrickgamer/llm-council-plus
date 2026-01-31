@@ -3,8 +3,10 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: transparent; /* Let body gradient show through */
+  background: transparent;
   color: var(--text-primary);
+  position: relative;
+  z-index: 1;
 }
 
 /* Ensure modals sit on top of the glass UI */

@@ -1,19 +1,18 @@
-/* Sidebar Styles (Midnight Glass) */
+/* Sidebar — Council Chamber */
 
 .sidebar {
   width: 280px;
   height: 100%;
-  background: rgba(2, 6, 23, 0.95);
-  /* Dark glass, high opacity */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border-glass);
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
   z-index: 20;
   flex-shrink: 0;
-  /* Prevent shrinking */
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
 }
 
 /* Header Area */
@@ -32,11 +31,11 @@
 }
 
 .sidebar-title {
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
 }
 
 .sidebar-subtitle {
@@ -48,7 +47,7 @@
 }
 
 .title-plus {
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -96,10 +95,10 @@
 .new-council-btn {
   width: 100%;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border: 1px solid rgba(59, 130, 246, 0.5);
+  border: 1px solid rgba(59, 130, 246, 0.4);
   color: white;
   padding: 14px 20px;
-  border-radius: 12px;
+  border-radius: 14px;
   font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 600;
@@ -107,15 +106,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
 }
 
 .new-council-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+  border-color: rgba(59, 130, 246, 0.6);
 }
 
 .new-council-btn:disabled {
@@ -143,25 +142,25 @@
 }
 
 .conversation-item {
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 0.35);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-glass);
   border-radius: 12px;
   padding: 14px 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .conversation-item:hover {
-  background: rgba(30, 41, 59, 0.6);
-  border-color: rgba(59, 130, 246, 0.3);
-  transform: translateX(2px);
+  background: rgba(30, 41, 59, 0.55);
+  border-color: rgba(59, 130, 246, 0.25);
+  transform: translateX(4px);
 }
 
 .conversation-item.active {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.5);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+  background: var(--accent-primary-dim);
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.18);
 }
 
 .sidebar-empty-state {
