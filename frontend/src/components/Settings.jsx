@@ -1305,6 +1305,7 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
             {activeSection === 'council' && (
               <CouncilConfig
                 settings={settings}
+                ollamaStatus={ollamaStatus}
                 // State
                 enabledProviders={enabledProviders}
                 setEnabledProviders={setEnabledProviders}
@@ -1431,6 +1432,31 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
                   >
                     Reset to Defaults
                   </button>
+                </div>
+
+                <div className="subsection version-info" style={{ marginTop: '32px', paddingTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <h4>About</h4>
+                  <div className="version-details">
+                    <div className="version-row">
+                      <span className="version-label">Version</span>
+                      <span className="version-value">0.2.0</span>
+                    </div>
+                    <div className="version-row">
+                      <span className="version-label">Created by</span>
+                      <span className="version-value">Jacob Ben-David</span>
+                    </div>
+                    <div className="version-row">
+                      <span className="version-label">Repository</span>
+                      <a 
+                        href="https://github.com/jbendavi/llm-council-plus" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="version-link"
+                      >
+                        GitHub
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </section>
             )}

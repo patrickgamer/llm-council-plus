@@ -9,9 +9,19 @@ export default function Sidebar({
   onDeleteConversation,
   onOpenSettings,
   isLoading,
-  onAbort
+  onAbort,
+  isOpen,
+  onClose
 }) {
   const [confirmingDelete, setConfirmingDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter conversations by title
+  const filteredConversations = conversations.filter(conv => {
+    if (!searchQuery.trim()) return true;
+    const title = conv.title || 'New Conversation';
+    return title.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const handleAbortClick = (e) => {
     e.stopPropagation();
@@ -35,11 +45,21 @@ export default function Sidebar({
   };
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-header">
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && <div className="sidebar-backdrop" onClick={onClose} />}
+      
+      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+        {/* Mobile close button */}
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close menu">
+          ×
+        </button>
+        
+        <div className="sidebar-header">
         <div className="sidebar-title-wrapper">
           <div className="sidebar-title">LLM Council <span className="title-plus">Plus</span></div>
           <div className="sidebar-subtitle">Created by: Jacob Ben-David</div>
+          <div className="sidebar-version">v0.2.0</div>
         </div>
         <button
           className="icon-button"
@@ -62,11 +82,33 @@ export default function Sidebar({
         </button>
       </div>
 
+      {/* Search Input */}
+      <div className="sidebar-search">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search conversations..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button 
+            className="search-clear" 
+            onClick={() => setSearchQuery('')}
+            title="Clear search"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
       <div className="conversation-list">
-        {conversations.length === 0 ? (
-          <div className="sidebar-empty-state">No history</div>
+        {filteredConversations.length === 0 ? (
+          <div className="sidebar-empty-state">
+            {searchQuery ? 'No matching conversations' : 'No history'}
+          </div>
         ) : (
-          conversations.map((conv) => (
+          filteredConversations.map((conv) => (
             <div
               key={conv.id}
               className={`conversation-item ${conv.id === currentConversationId ? 'active' : ''}`}
@@ -113,5 +155,6 @@ export default function Sidebar({
         )}
       </div>
     </div>
+    </>
   );
 }

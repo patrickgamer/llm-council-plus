@@ -90,7 +90,7 @@ This fixes binary incompatibilities (e.g., `@rollup/rollup-darwin-*` variants).
 | `Sidebar.jsx` | Conversation list with inline delete confirmation |
 | `SearchableModelSelect.jsx` | Searchable dropdown for model selection |
 
-**Styling**: "Midnight Glass" dark theme with glassmorphic effects. Primary colors: blue (#3b82f6) and cyan (#06b6d4) gradients. Font: Merriweather 15px/1.7 for content, JetBrains Mono for errors.
+**Styling**: "Council Chamber" dark theme (refined Midnight Glass). CSS variables in `index.css` (`--font-display`: Syne, `--font-ui`: Plus Jakarta Sans, `--font-content`: Source Serif 4, `--font-code`: JetBrains Mono). Primary accent blue (#3b82f6), chairman gold (#fbbf24). Staggered hero/card animations; glass panels with backdrop-filter.
 
 ## Critical Implementation Details
 

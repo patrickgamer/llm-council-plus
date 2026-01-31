@@ -7,16 +7,16 @@
 }
 
 .tab {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-card);
   border: 1px solid var(--border-glass);
   color: var(--text-secondary);
-  padding: 12px;
+  padding: 12px 14px;
   border-radius: 12px;
   cursor: pointer;
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -25,15 +25,15 @@
 }
 
 .tab:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   transform: translateY(-2px);
 }
 
 .tab.active {
-  background: rgba(15, 23, 42, 0.6);
-  border-bottom-width: 3px; /* Highlight active with border color set inline */
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
   color: var(--text-primary);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-soft);
 }
 
 .tab-icon {
@@ -113,6 +113,7 @@
 }
 
 .model-name-large {
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
@@ -185,4 +186,66 @@
 
 .tab.loading {
   animation: pulse-border 1.5s infinite;
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .tabs {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .tab-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+
+  .tab-content {
+    padding: 16px 12px;
+    min-height: 150px;
+  }
+
+  .model-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .model-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .model-name-large {
+    font-size: 14px;
+  }
+
+  .model-provider-badge {
+    font-size: 10px;
+  }
+
+  .model-status {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .response-error {
+    padding: 14px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .error-message {
+    font-size: 12px;
+    word-break: break-word;
+  }
 }
