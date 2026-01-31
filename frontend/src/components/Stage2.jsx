@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Skeleton from './common/Skeleton';
 import ReactMarkdown from 'react-markdown';
 import { getModelVisuals, getShortModelName } from '../utils/modelHelpers';
 import './Stage2.css';
@@ -249,6 +250,75 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, star
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+export function Stage2Skeleton() {
+    return (
+        <div className="stage-container stage-2 skeleton-mode">
+            <div className="stage-header">
+                <div className="stage-title">
+                    <span className="stage-icon">⚖️</span>
+                    Stage 2: Peer Rankings
+                </div>
+                <div className="stage-timer-skeleton">
+                    <Skeleton variant="text" width="60px" />
+                </div>
+            </div>
+
+            <h4><Skeleton variant="text" width="150px" /></h4>
+            <div className="stage-description">
+                <Skeleton variant="text" width="100%" />
+                <Skeleton variant="text" width="80%" />
+            </div>
+
+            {/* Tabs Skeleton */}
+            <div className="tabs">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="tab skeleton-tab">
+                        <Skeleton variant="circle" width="24px" height="24px" style={{ marginBottom: '8px' }} />
+                        <Skeleton variant="text" width="50%" height="0.8em" />
+                    </div>
+                ))}
+            </div>
+
+            <div className="tab-content glass-panel" style={{ minHeight: '300px' }}>
+                <div className="model-header">
+                    <div className="model-identity">
+                        <Skeleton variant="avatar" />
+                        <div className="model-info" style={{ gap: '4px', display: 'flex', flexDirection: 'column' }}>
+                            <Skeleton variant="text" width="120px" height="1.2em" />
+                            <Skeleton variant="text" width="80px" height="0.8em" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="ranking-content" style={{ marginTop: '20px' }}>
+                    <Skeleton variant="text" width="100%" />
+                    <Skeleton variant="text" width="90%" />
+                    <Skeleton variant="text" width="95%" />
+                    <Skeleton variant="text" width="85%" />
+                </div>
+            </div>
+
+            <div className="aggregate-rankings" style={{ marginTop: '20px' }}>
+                <h4><Skeleton variant="text" width="180px" /></h4>
+                <div className="stage-description">
+                    <Skeleton variant="text" width="90%" />
+                </div>
+
+                <div className="aggregate-list">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="aggregate-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                            <Skeleton variant="text" width="20px" />
+                            <div style={{ flex: 1 }}>
+                                <Skeleton variant="rect" width={`${100 - (i * 15)}%`} height="32px" style={{ borderRadius: '4px' }} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

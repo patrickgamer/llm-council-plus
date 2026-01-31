@@ -2,9 +2,9 @@ import StageTimer from './StageTimer';
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import SearchContext from './SearchContext';
-import Stage1 from './Stage1';
-import Stage2 from './Stage2';
-import Stage3 from './Stage3';
+import Stage1, { Stage1Skeleton } from './Stage1';
+import Stage2, { Stage2Skeleton } from './Stage2';
+import Stage3, { Stage3Skeleton } from './Stage3';
 import CouncilGrid from './CouncilGrid';
 import ExecutionModeToggle from './ExecutionModeToggle';
 import { api } from '../api';
@@ -161,20 +161,21 @@ export default function ChatInterface({
                                         )}
 
                                         {/* Stage 1 Results (Accordion/List - kept for detail view) */}
-                                        {msg.stage1 && (
-                                            <Stage1
-                                                responses={msg.stage1}
-                                                startTime={msg.timers?.stage1Start}
-                                                endTime={msg.timers?.stage1End}
-                                            />
-                                        )}
+                                        {(msg.loading?.stage1 || (msg.stage1 && !msg.stage2)) ? (
+                                            msg.loading?.stage1 && !msg.stage1 ? (
+                                                <Stage1Skeleton />
+                                            ) : msg.stage1 && (
+                                                <Stage1
+                                                    responses={msg.stage1}
+                                                    startTime={msg.timers?.stage1Start}
+                                                    endTime={msg.timers?.stage1End}
+                                                />
+                                            )
+                                        ) : null}
 
                                         {/* Stage 2 */}
                                         {msg.loading?.stage2 && (
-                                            <div className="stage-loading">
-                                                <div className="spinner"></div>
-                                                <span>Running Stage 2...</span>
-                                            </div>
+                                            <Stage2Skeleton />
                                         )}
                                         {msg.stage2 && (
                                             <Stage2
@@ -188,10 +189,7 @@ export default function ChatInterface({
 
                                         {/* Stage 3 */}
                                         {msg.loading?.stage3 && (
-                                            <div className="stage-loading">
-                                                <div className="spinner"></div>
-                                                <span>Final Synthesis...</span>
-                                            </div>
+                                            <Stage3Skeleton />
                                         )}
                                         {msg.stage3 && (
                                             <Stage3

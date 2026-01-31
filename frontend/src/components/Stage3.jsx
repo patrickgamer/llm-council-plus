@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Skeleton from './common/Skeleton';
 import { getModelVisuals, getShortModelName } from '../utils/modelHelpers';
 import ThinkBlockRenderer from './ThinkBlockRenderer';
 import StageTimer from './StageTimer';
@@ -80,6 +81,45 @@ export default function Stage3({ finalResponse, startTime, endTime }) {
                                 : String(finalResponse?.response || 'No response')
                         }
                     />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export function Stage3Skeleton() {
+    return (
+        <div className="stage-container stage-3 skeleton-mode">
+            <div className="stage-header">
+                <div className="stage-title">
+                    <span className="stage-icon">⚖️</span>
+                    Stage 3: Final Council Answer
+                </div>
+                <div className="stage-timer-skeleton">
+                    <Skeleton variant="text" width="60px" />
+                </div>
+            </div>
+            <div className="final-response">
+                <div className="chairman-header">
+                    <div className="chairman-identity">
+                        <Skeleton variant="avatar" />
+                        <div className="chairman-info" style={{ gap: '4px', display: 'flex', flexDirection: 'column' }}>
+                            <Skeleton variant="text" width="140px" height="1.2em" />
+                            <Skeleton variant="text" width="100px" height="0.8em" />
+                            <Skeleton variant="text" width="80px" height="0.8em" />
+                        </div>
+                    </div>
+                    <Skeleton variant="rect" width="60px" height="32px" style={{ borderRadius: '16px' }} />
+                </div>
+                <div className="final-text markdown-content">
+                    <Skeleton variant="text" width="100%" />
+                    <Skeleton variant="text" width="95%" />
+                    <Skeleton variant="text" width="92%" />
+                    <Skeleton variant="text" width="98%" />
+                    <br />
+                    <Skeleton variant="text" width="100%" />
+                    <Skeleton variant="text" width="85%" />
+                    <Skeleton variant="text" width="90%" />
                 </div>
             </div>
         </div>
