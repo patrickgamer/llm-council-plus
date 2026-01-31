@@ -8,16 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.1] - 2026-01-31
 
 ### Added
+- **Serper.dev Integration**: Google Search via Serper API with 2,500 free queries
 - **DuckDuckGo Search Optimization**: Intelligent query processing with intent detection, hybrid web+news search, and relevance reranking
 - **Search Settings**: Configurable result count (5-15) and hybrid mode toggle for DuckDuckGo
 - **Query Intent Detection**: Automatically detects current events, factual, comparison, and research queries
+- **Auto-save Council Config**: Council members and chairman selections now auto-save (no more forgetting to click Save)
+- **Council Validation**: Prevent saving incomplete configurations (empty member slots or missing chairman)
 
 ### Changed
 - **Improved Font Readability**: Switched markdown headers and model names from stylized 'Syne' to readable 'Plus Jakarta Sans'
 - **Search Query Processing**: DuckDuckGo now automatically removes conversational fluff and adds temporal context
+- **Search Provider Auto-switch**: Testing a search API key now auto-saves and switches to that provider
 
 ### Fixed
 - YAKE keyword extraction setting now only shows for Tavily/Brave (DuckDuckGo has built-in optimization)
+- Font inconsistency between Stage 3 (Chairman) and Stage 1/2 responses
+- CORS support for additional frontend port (5174)
 
 ## [0.2.0] - 2026-01-31
 

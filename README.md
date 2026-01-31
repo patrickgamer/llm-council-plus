@@ -34,6 +34,25 @@ The result? More balanced, accurate, and thoroughly vetted responses that levera
 
 ---
 
+## Installation
+
+```bash
+# Clone and install
+git clone https://github.com/jacob-bd/llm-council-plus.git
+cd llm-council-plus
+uv sync                    # Backend dependencies
+cd frontend && npm install # Frontend dependencies
+
+# Run (from project root)
+./start.sh
+```
+
+Then open **http://localhost:5173** and configure your API keys in Settings.
+
+> **Prerequisites:** Python 3.10+, Node.js 18+, [uv](https://docs.astral.sh/uv/)
+
+---
+
 ## How It Works
 
 ```
@@ -123,7 +142,8 @@ Ground your council's responses in real-time information:
 
 | Provider | Type | Notes |
 |----------|------|-------|
-| **DuckDuckGo** | Free | News search, no API key needed |
+| **DuckDuckGo** | Free | Hybrid web+news search, no API key needed |
+| **Serper** | API Key | Real Google results, 2,500 free queries |
 | **Tavily** | API Key | Purpose-built for LLMs, rich content |
 | **Brave Search** | API Key | Privacy-focused, 2,000 free queries/month |
 
@@ -175,7 +195,7 @@ Fine-tune creativity vs consistency:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/llm-council-plus.git
+git clone https://github.com/jacob-bd/llm-council-plus.git
 cd llm-council-plus
 
 # Install backend dependencies
@@ -304,6 +324,7 @@ Connect to any OpenAI-compatible API:
 | Provider | Setup |
 |----------|-------|
 | DuckDuckGo | Works out of the box, no setup needed |
+| Serper | Get key at [serper.dev](https://serper.dev), enter in Search Providers tab |
 | Tavily | Get key at [tavily.com](https://tavily.com), enter in Search Providers tab |
 | Brave | Get key at [brave.com/search/api](https://brave.com/search/api/), enter in Search Providers tab |
 
