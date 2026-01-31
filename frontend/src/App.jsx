@@ -673,6 +673,11 @@ function App() {
     setSidebarOpen(false); // Close sidebar on mobile after selection
   };
 
+  const handleMobileNewConversation = async () => {
+    await handleNewConversation();
+    setSidebarOpen(false); // Close sidebar on mobile after creating new conversation
+  };
+
   const handleMobileOpenSettings = () => {
     setShowSettings(true);
     setSidebarOpen(false); // Close sidebar on mobile
@@ -693,7 +698,7 @@ function App() {
         conversations={conversations}
         currentConversationId={currentConversationId}
         onSelectConversation={handleMobileSelectConversation}
-        onNewConversation={handleNewConversation}
+        onNewConversation={handleMobileNewConversation}
         onDeleteConversation={handleDeleteConversation}
         onOpenSettings={handleMobileOpenSettings}
         isLoading={isLoading}
