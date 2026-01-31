@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api } from '../api';
 import SearchableModelSelect from './SearchableModelSelect';
 import ProviderSettings from './settings/ProviderSettings';
@@ -646,7 +646,7 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
 
   const handleFeelingLucky = () => {
     // 1. Get pool of available models respecting "Free Only" filter
-    let candidateModels = getFilteredAvailableModels();
+    let candidateModels = filteredAvailableModels;
 
     if (!candidateModels || candidateModels.length === 0) {
       setError("No models available to randomize! Check your enabled providers.");
@@ -720,7 +720,7 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     }
 
     // Get models for the chosen filter
-    const filtered = filterByRemoteLocal(getFilteredAvailableModels(), defaultFilter);
+    const filtered = filterByRemoteLocal(filteredAvailableModels, defaultFilter);
 
     // Even if no models found, we should allow adding the slot so user can switch filter/provider
     // But we try to pick a default if possible
@@ -1002,7 +1002,7 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
         }
 
         // Validate imported models against all available models
-        const allModels = getAllAvailableModels();
+        const allModels = allAvailableModels;
         const missingModels = (config.council_models || []).filter(id =>
           !allModels.find(m => m.id === id)
         );
@@ -1102,7 +1102,7 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
   };
 
   // Get all available models from all sources
-  const getAllAvailableModels = () => {
+  const allAvailableModels = useMemo(() => {
     const models = [];
 
     // Add OpenRouter models if enabled
@@ -1151,11 +1151,20 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     });
 
     return Array.from(uniqueModels.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  };
+  }, [
+    enabledProviders,
+    availableModels,
+    ollamaAvailableModels,
+    directAvailableModels,
+    customEndpointModels,
+    directProviderToggles,
+    directKeys,
+    settings
+  ]);
 
   // Get filtered models for council member selection (respects free filter)
-  const getFilteredAvailableModels = () => {
-    const all = getAllAvailableModels();
+  const filteredAvailableModels = useMemo(() => {
+    const all = allAvailableModels;
     if (!showFreeOnly) return all;
 
     // Filter logic:
@@ -1173,7 +1182,7 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       // Otherwise (Direct, Ollama, Custom), always show
       return true;
     });
-  };
+  }, [allAvailableModels, showFreeOnly]);
 
 
 
@@ -1316,8 +1325,8 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
                 chairmanTemperature={chairmanTemperature}
                 setChairmanTemperature={setChairmanTemperature}
                 // Data
-                allModels={getAllAvailableModels()}
-                filteredModels={getFilteredAvailableModels()}
+                allModels={allAvailableModels}
+                filteredModels={filteredAvailableModels}
                 ollamaAvailableModels={ollamaAvailableModels}
                 customEndpointName={customEndpointName}
                 customEndpointUrl={customEndpointUrl}
