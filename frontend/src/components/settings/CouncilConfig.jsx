@@ -273,8 +273,9 @@ export default function CouncilConfig({
                     <div className="council-members">
                         {councilModels.map((modelId, index) => {
                             const memberFilter = getMemberFilter(index);
+                            const hasValidationError = validationErrors[`member_${index}`];
                             return (
-                                <div key={index} className="council-member-row">
+                                <div key={index} className={`council-member-row ${hasValidationError ? 'validation-error' : ''}`}>
                                     <span className="member-label">Member {index + 1}</span>
                                     <div className="model-type-toggle">
                                         <button
@@ -296,7 +297,7 @@ export default function CouncilConfig({
                                             Local
                                         </button>
                                     </div>
-                                    <div className="model-select-wrapper">
+                                    <div className={`model-select-wrapper ${hasValidationError ? 'validation-error' : ''}`}>
                                         <SearchableModelSelect
                                             models={filterByRemoteLocal(filteredModels, memberFilter)}
                                             value={modelId}
@@ -306,6 +307,11 @@ export default function CouncilConfig({
                                             isLoading={isLoadingModels}
                                             allModels={allModels}
                                         />
+                                        {hasValidationError && (
+                                            <div className="validation-error-message">
+                                                ⚠️ Please select a model or remove this member
+                                            </div>
+                                        )}
                                     </div>
                                     {index >= 2 && (
                                         <button

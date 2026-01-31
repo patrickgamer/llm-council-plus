@@ -1622,3 +1622,16 @@ input:checked+.slider:before {
   10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
   20%, 40%, 60%, 80% { transform: translateX(4px); }
 }
+
+.council-member-row.validation-error {
+  animation: shake 0.5s ease-in-out;
+}
+
+.model-select-wrapper.validation-error .searchable-select-container {
+  border: 2px solid #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2), 0 0 20px rgba(239, 68, 68, 0.3) !important;
+}
+
+.model-select-wrapper .validation-error-message {
+  margin-top: 6px;
+}

@@ -294,13 +294,26 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     };
   }, [councilModels, chairmanModel, settings]);
 
-  // Clear validation errors when chairman is selected
+  // Clear validation errors when chairman or council members change
   useEffect(() => {
-    if (chairmanModel && validationErrors.chairman) {
-      setValidationErrors({});
-      setError(null);
+    if (Object.keys(validationErrors).length > 0) {
+      // Check if the validation error condition is now fixed
+      const hasEmptyMembers = councilModels.some(m => !m || m.length === 0);
+      const hasMemberError = Object.keys(validationErrors).some(k => k.startsWith('member_'));
+      const hasChairmanError = validationErrors.chairman;
+      
+      // Clear member error if all members are now filled
+      if (hasMemberError && !hasEmptyMembers) {
+        setValidationErrors({});
+        setError(null);
+      }
+      // Clear chairman error if chairman is now selected
+      else if (hasChairmanError && chairmanModel && chairmanModel.length > 0) {
+        setValidationErrors({});
+        setError(null);
+      }
     }
-  }, [chairmanModel, validationErrors.chairman]);
+  }, [chairmanModel, councilModels, validationErrors]);
 
   const loadSettings = async () => {
     try {
@@ -1173,11 +1186,24 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
     setValidationErrors({});
 
     // Validate council configuration
-    const hasCouncilMembers = councilModels.some(m => m && m.length > 0);
+    const hasAnyCouncilMember = councilModels.some(m => m && m.length > 0);
+    const emptyMemberIndices = councilModels
+      .map((m, i) => (!m || m.length === 0) ? i : -1)
+      .filter(i => i !== -1);
+    const hasEmptyMembers = emptyMemberIndices.length > 0;
     const hasChairman = chairmanModel && chairmanModel.length > 0;
 
+    // If there are empty council member slots, show error
+    if (hasEmptyMembers) {
+      const firstEmptyIndex = emptyMemberIndices[0];
+      setValidationErrors({ [`member_${firstEmptyIndex}`]: true });
+      setError(`Please select a model for Member ${firstEmptyIndex + 1} or remove the empty slot.`);
+      setActiveSection('council');
+      return;
+    }
+
     // If council members are selected but no chairman, show error
-    if (hasCouncilMembers && !hasChairman) {
+    if (hasAnyCouncilMember && !hasChairman) {
       setValidationErrors({ chairman: true });
       setError('Please select a Chairman to complete the council configuration.');
       
