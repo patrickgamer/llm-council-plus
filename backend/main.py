@@ -21,7 +21,7 @@ app = FastAPI(title="LLM Council Plus API")
 # Allow requests from any hostname on ports 5173 and 3000 (frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://.*:(5173|3000)",
+    allow_origin_regex=r"http://.*:(5173|5174|3000)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -143,6 +143,8 @@ async def send_message_stream(conversation_id: str, body: SendMessageRequest, re
                 provider = SearchProvider(settings.search_provider)
 
                 # Set API keys if configured
+                if settings.serper_api_key and provider == SearchProvider.SERPER:
+                    os.environ["SERPER_API_KEY"] = settings.serper_api_key
                 if settings.tavily_api_key and provider == SearchProvider.TAVILY:
                     os.environ["TAVILY_API_KEY"] = settings.tavily_api_key
                 if settings.brave_api_key and provider == SearchProvider.BRAVE:
@@ -321,6 +323,7 @@ class UpdateSettingsRequest(BaseModel):
     custom_endpoint_api_key: Optional[str] = None
 
     # API Keys
+    serper_api_key: Optional[str] = None
     tavily_api_key: Optional[str] = None
     brave_api_key: Optional[str] = None
     openrouter_api_key: Optional[str] = None
@@ -489,6 +492,12 @@ async def update_app_settings(request: UpdateSettingsRequest):
         updates["stage2_prompt"] = request.stage2_prompt
     if request.stage3_prompt is not None:
         updates["stage3_prompt"] = request.stage3_prompt
+
+    if request.serper_api_key is not None:
+        updates["serper_api_key"] = request.serper_api_key
+        # Also set in environment for immediate use
+        if request.serper_api_key:
+            os.environ["SERPER_API_KEY"] = request.serper_api_key
 
     if request.tavily_api_key is not None:
         updates["tavily_api_key"] = request.tavily_api_key

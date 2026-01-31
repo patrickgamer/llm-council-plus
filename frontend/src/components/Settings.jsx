@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { api } from '../api';
 import SearchableModelSelect from './SearchableModelSelect';
 import ProviderSettings from './settings/ProviderSettings';
@@ -226,6 +226,70 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
 
   }, [enabledProviders, chairmanFilter]);
 
+  // Auto-save council configuration with debounce
+  const autoSaveTimerRef = useRef(null);
+  const isInitialLoadRef = useRef(true);
+  const prevCouncilModelsRef = useRef(null);
+  const prevChairmanModelRef = useRef(null);
+
+  useEffect(() => {
+    // Skip auto-save on initial load
+    if (isInitialLoadRef.current) {
+      return;
+    }
+
+    // Skip if settings haven't loaded yet
+    if (!settings) {
+      return;
+    }
+
+    // Check if council models or chairman actually changed (not just re-rendered)
+    const councilModelsStr = JSON.stringify(councilModels);
+    const prevCouncilModelsStr = JSON.stringify(prevCouncilModelsRef.current);
+    const chairmanChanged = chairmanModel !== prevChairmanModelRef.current;
+    const councilChanged = councilModelsStr !== prevCouncilModelsStr;
+
+    if (!councilChanged && !chairmanChanged) {
+      return;
+    }
+
+    // Update refs
+    prevCouncilModelsRef.current = councilModels;
+    prevChairmanModelRef.current = chairmanModel;
+
+    // Skip if all values are empty (reset state)
+    const hasValidCouncil = councilModels.some(m => m && m.length > 0);
+    const hasValidChairman = chairmanModel && chairmanModel.length > 0;
+    if (!hasValidCouncil && !hasValidChairman) {
+      return;
+    }
+
+    // Clear any existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Debounce auto-save by 1 second
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        await api.updateSettings({
+          council_models: councilModels,
+          chairman_model: chairmanModel
+        });
+        console.log('Auto-saved council configuration');
+      } catch (err) {
+        console.error('Failed to auto-save council configuration:', err);
+      }
+    }, 1000);
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [councilModels, chairmanModel, settings]);
+
   const loadSettings = async () => {
     try {
       const data = await api.getSettings();
@@ -272,11 +336,21 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       }
 
       // Council Configuration (unified)
-      setCouncilModels(data.council_models || []);
-      setChairmanModel(data.chairman_model || '');
+      const loadedCouncilModels = data.council_models || [];
+      const loadedChairmanModel = data.chairman_model || '';
+      setCouncilModels(loadedCouncilModels);
+      setChairmanModel(loadedChairmanModel);
       setCouncilTemperature(data.council_temperature ?? 0.5);
       setChairmanTemperature(data.chairman_temperature ?? 0.4);
       setStage2Temperature(data.stage2_temperature ?? 0.3);
+
+      // Initialize refs for auto-save tracking (prevents auto-save on initial load)
+      prevCouncilModelsRef.current = loadedCouncilModels;
+      prevChairmanModelRef.current = loadedChairmanModel;
+      // Mark initial load as complete after a short delay to let state settle
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 500);
 
       // Remote/Local filters - load from saved settings
       if (data.council_member_filters) {
@@ -420,12 +494,16 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       const result = await api.testSerperKey(keyToTest);
       setSerperTestResult(result);
 
-      // Auto-save API key if validation succeeds and a new key was provided
+      // Auto-save API key AND provider selection if validation succeeds
       if (result.success && serperApiKey) {
-        await api.updateSettings({ serper_api_key: serperApiKey });
+        // Save both the API key and switch provider to Serper
+        await api.updateSettings({ 
+          serper_api_key: serperApiKey,
+          search_provider: 'serper'
+        });
         setSerperApiKey(''); // Clear input after save
 
-        // Reload settings
+        // Reload settings (will now have serper as provider)
         await loadSettings();
 
         setSuccess(true);
@@ -451,12 +529,16 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       const result = await api.testTavilyKey(keyToTest);
       setTavilyTestResult(result);
 
-      // Auto-save API key if validation succeeds and a new key was provided
+      // Auto-save API key AND provider selection if validation succeeds
       if (result.success && tavilyApiKey) {
-        await api.updateSettings({ tavily_api_key: tavilyApiKey });
+        // Save both the API key and switch provider to Tavily
+        await api.updateSettings({ 
+          tavily_api_key: tavilyApiKey,
+          search_provider: 'tavily'
+        });
         setTavilyApiKey(''); // Clear input after save
 
-        // Reload settings
+        // Reload settings (will now have tavily as provider)
         await loadSettings();
 
         setSuccess(true);
@@ -482,12 +564,16 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
       const result = await api.testBraveKey(keyToTest);
       setBraveTestResult(result);
 
-      // Auto-save API key if validation succeeds and a new key was provided
+      // Auto-save API key AND provider selection if validation succeeds
       if (result.success && braveApiKey) {
-        await api.updateSettings({ brave_api_key: braveApiKey });
+        // Save both the API key and switch provider to Brave
+        await api.updateSettings({ 
+          brave_api_key: braveApiKey,
+          search_provider: 'brave'
+        });
         setBraveApiKey(''); // Clear input after save
 
-        // Reload settings
+        // Reload settings (will now have brave as provider)
         await loadSettings();
 
         setSuccess(true);
