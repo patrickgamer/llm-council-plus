@@ -4,6 +4,7 @@ import ChatInterface from './components/ChatInterface';
 import Settings from './components/Settings';
 import { api } from './api';
 import './App.css';
+import './components/StageCopyButtons.css';
 
 function App() {
   const [conversations, setConversations] = useState([]);

@@ -44,6 +44,30 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, star
     // Get visuals for current tab
     const currentVisuals = getModelVisuals(currentRanking?.model);
 
+    // Copy functionality
+    const [isCopied, setIsCopied] = useState(false);
+
+    // Reset copy state when tab changes
+    useEffect(() => {
+        setIsCopied(false);
+    }, [activeTab]);
+
+    const handleCopy = async () => {
+        const ranking = currentRanking?.ranking;
+        const rankingText = typeof ranking === 'string' ? ranking : String(ranking || '');
+        const textToCopy = deAnonymizeText(rankingText, labelToModel);
+
+        if (!textToCopy) return;
+
+        try {
+            await navigator.clipboard.writeText(textToCopy);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy text:', err);
+        }
+    };
+
     return (
         <div className="stage-container stage-2">
             <div className="stage-header">
@@ -98,11 +122,33 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, star
                         </div>
                     </div>
 
-                    {hasError ? (
-                        <span className="model-status error">Failed</span>
-                    ) : (
-                        <span className="model-status success">Completed</span>
-                    )}
+                    <div className="header-actions">
+                        {!hasError && (
+                            <button
+                                className={`copy-button ${isCopied ? 'copied' : ''}`}
+                                onClick={handleCopy}
+                                title="Copy to clipboard"
+                            >
+                                {isCopied ? (
+                                    <>
+                                        <span className="icon">✓</span>
+                                        <span className="label">Copied</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="icon">📋</span>
+                                        <span className="label">Copy</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+
+                        {hasError ? (
+                            <span className="model-status error">Failed</span>
+                        ) : (
+                            <span className="model-status success">Completed</span>
+                        )}
+                    </div>
                 </div>
 
                 {hasError ? (
