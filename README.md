@@ -191,22 +191,6 @@ Fine-tune creativity vs consistency:
 - **Node.js 18+**
 - **[uv](https://docs.astral.sh/uv/)** (Python package manager)
 
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/jacob-bd/llm-council-plus.git
-cd llm-council-plus
-
-# Install backend dependencies
-uv sync
-
-# Install frontend dependencies
-cd frontend
-npm install
-cd ..
-```
-
 ### Running the Application
 
 **Option 1: Use the start script (recommended)**
