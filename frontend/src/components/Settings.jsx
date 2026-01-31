@@ -1305,6 +1305,7 @@ export default function Settings({ onClose, ollamaStatus, onRefreshOllama, initi
             {activeSection === 'council' && (
               <CouncilConfig
                 settings={settings}
+                ollamaStatus={ollamaStatus}
                 // State
                 enabledProviders={enabledProviders}
                 setEnabledProviders={setEnabledProviders}

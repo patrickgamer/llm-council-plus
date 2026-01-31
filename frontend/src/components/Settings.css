@@ -1002,6 +1002,21 @@ input:checked+.slider:before {
   transform: translateX(20px);
 }
 
+/* Disabled source toggle styles */
+.toggle-wrapper.source-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-wrapper.source-disabled .toggle-switch {
+  pointer-events: none;
+}
+
+.toggle-wrapper.source-disabled .slider {
+  cursor: not-allowed;
+  background-color: #4a5568;
+}
+
 .toggle-text {
   font-size: 14px;
   font-weight: 500;

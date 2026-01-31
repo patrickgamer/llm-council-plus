@@ -11,6 +11,7 @@ const DIRECT_PROVIDERS = [
 
 export default function CouncilConfig({
     settings,
+    ollamaStatus,
     // State
     enabledProviders,
     setEnabledProviders,
@@ -45,6 +46,21 @@ export default function CouncilConfig({
     setActiveSection,
     setActivePromptTab
 }) {
+    // Helper: Check if a source is configured (has API key or is connected)
+    const isSourceConfigured = (source) => {
+        switch (source) {
+            case 'openrouter': return !!settings?.openrouter_api_key_set;
+            case 'ollama': return ollamaStatus?.connected;
+            case 'groq': return !!settings?.groq_api_key_set;
+            case 'custom': return !!(settings?.custom_endpoint_url);
+            case 'openai': return !!settings?.openai_api_key_set;
+            case 'anthropic': return !!settings?.anthropic_api_key_set;
+            case 'google': return !!settings?.google_api_key_set;
+            case 'mistral': return !!settings?.mistral_api_key_set;
+            case 'deepseek': return !!settings?.deepseek_api_key_set;
+            default: return false;
+        }
+    };
 
     // Helper: Filter models by remote/local for specific use case
     const filterByRemoteLocal = (models, filter) => {
@@ -73,36 +89,48 @@ export default function CouncilConfig({
                 <div className="hybrid-settings-card">
                     {/* Primary Sources */}
                     <div className="filter-group">
-                        <label className="toggle-wrapper">
+                        <label 
+                            className={`toggle-wrapper ${!isSourceConfigured('openrouter') ? 'source-disabled' : ''}`}
+                            title={!isSourceConfigured('openrouter') ? 'SOURCE NOT CONFIGURED - Add API key in LLM API Keys' : ''}
+                        >
                             <div className="toggle-switch">
                                 <input
                                     type="checkbox"
                                     checked={enabledProviders.openrouter}
                                     onChange={(e) => setEnabledProviders(prev => ({ ...prev, openrouter: e.target.checked }))}
+                                    disabled={!isSourceConfigured('openrouter')}
                                 />
                                 <span className="slider"></span>
                             </div>
                             <span className="toggle-text">OpenRouter (Cloud)</span>
                         </label>
 
-                        <label className="toggle-wrapper">
+                        <label 
+                            className={`toggle-wrapper ${!isSourceConfigured('ollama') ? 'source-disabled' : ''}`}
+                            title={!isSourceConfigured('ollama') ? 'SOURCE NOT CONFIGURED - Connect Ollama in LLM API Keys' : ''}
+                        >
                             <div className="toggle-switch">
                                 <input
                                     type="checkbox"
                                     checked={enabledProviders.ollama}
                                     onChange={(e) => setEnabledProviders(prev => ({ ...prev, ollama: e.target.checked }))}
+                                    disabled={!isSourceConfigured('ollama')}
                                 />
                                 <span className="slider"></span>
                             </div>
                             <span className="toggle-text">Local (Ollama)</span>
                         </label>
 
-                        <label className="toggle-wrapper">
+                        <label 
+                            className={`toggle-wrapper ${!isSourceConfigured('groq') ? 'source-disabled' : ''}`}
+                            title={!isSourceConfigured('groq') ? 'SOURCE NOT CONFIGURED - Add API key in LLM API Keys' : ''}
+                        >
                             <div className="toggle-switch">
                                 <input
                                     type="checkbox"
                                     checked={enabledProviders.groq}
                                     onChange={(e) => setEnabledProviders(prev => ({ ...prev, groq: e.target.checked }))}
+                                    disabled={!isSourceConfigured('groq')}
                                 />
                                 <span className="slider"></span>
                             </div>
@@ -157,39 +185,47 @@ export default function CouncilConfig({
 
                     {/* Individual Direct Provider Toggles (purple) */}
                     <div className="direct-grid" style={{ opacity: enabledProviders.direct ? 1 : 0.7 }}>
-                        {DIRECT_PROVIDERS.map(dp => (
-                            <label key={dp.id} className="toggle-wrapper">
-                                <div className="toggle-switch direct-toggle">
-                                    <input
-                                        type="checkbox"
-                                        checked={directProviderToggles[dp.id]}
-                                        onChange={(e) => {
-                                            const isEnabled = e.target.checked;
-                                            setDirectProviderToggles(prev => {
-                                                const newState = { ...prev, [dp.id]: isEnabled };
+                        {DIRECT_PROVIDERS.map(dp => {
+                            const configured = isSourceConfigured(dp.id);
+                            return (
+                                <label 
+                                    key={dp.id} 
+                                    className={`toggle-wrapper ${!configured ? 'source-disabled' : ''}`}
+                                    title={!configured ? 'SOURCE NOT CONFIGURED - Add API key in LLM API Keys' : ''}
+                                >
+                                    <div className="toggle-switch direct-toggle">
+                                        <input
+                                            type="checkbox"
+                                            checked={directProviderToggles[dp.id]}
+                                            disabled={!configured}
+                                            onChange={(e) => {
+                                                const isEnabled = e.target.checked;
+                                                setDirectProviderToggles(prev => {
+                                                    const newState = { ...prev, [dp.id]: isEnabled };
 
-                                                // Auto-enable master if any child is enabled
-                                                if (isEnabled && !enabledProviders.direct) {
-                                                    setEnabledProviders(prevEP => ({ ...prevEP, direct: true }));
-                                                }
+                                                    // Auto-enable master if any child is enabled
+                                                    if (isEnabled && !enabledProviders.direct) {
+                                                        setEnabledProviders(prevEP => ({ ...prevEP, direct: true }));
+                                                    }
 
-                                                // Auto-disable master if ALL children are disabled
-                                                const hasAnyEnabled = Object.values(newState).some(v => v);
-                                                if (!hasAnyEnabled && enabledProviders.direct) {
-                                                    setEnabledProviders(prevEP => ({ ...prevEP, direct: false }));
-                                                }
+                                                    // Auto-disable master if ALL children are disabled
+                                                    const hasAnyEnabled = Object.values(newState).some(v => v);
+                                                    if (!hasAnyEnabled && enabledProviders.direct) {
+                                                        setEnabledProviders(prevEP => ({ ...prevEP, direct: false }));
+                                                    }
 
-                                                return newState;
-                                            });
-                                        }}
-                                    />
-                                    <span className="slider"></span>
-                                </div>
-                                <span className="toggle-text" style={{ fontSize: '13px' }}>
-                                    {dp.name}
-                                </span>
-                            </label>
-                        ))}
+                                                    return newState;
+                                                });
+                                            }}
+                                        />
+                                        <span className="slider"></span>
+                                    </div>
+                                    <span className="toggle-text" style={{ fontSize: '13px' }}>
+                                        {dp.name}
+                                    </span>
+                                </label>
+                            );
+                        })}
                     </div>
                 </div>
             </section>
