@@ -170,3 +170,45 @@
   font-size: 16px;
   font-family: 'Merriweather', serif;
 }
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .final-response {
+    padding: 16px;
+  }
+
+  .chairman-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .chairman-identity {
+    gap: 12px;
+  }
+
+  .chairman-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 10px;
+  }
+
+  .chairman-role {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .chairman-model {
+    font-size: 15px;
+  }
+
+  .chairman-provider-badge {
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+
+  .final-text {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+}
