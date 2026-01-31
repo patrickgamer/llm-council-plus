@@ -235,8 +235,8 @@ async def perform_web_search(
         elif provider == SearchProvider.BRAVE:
             results = await _search_brave(extracted_query, max_results, full_content_results)
         else:
-            # DuckDuckGo's DDGS library is synchronous, so run in thread
-            results = await asyncio.to_thread(_search_duckduckgo, extracted_query, max_results, full_content_results)
+            # DuckDuckGo - now async with parallel Jina fetching (DDGS library calls are still sync but wrapped)
+            results = await _search_duckduckgo(extracted_query, max_results, full_content_results)
 
         return {"results": results, "extracted_query": extracted_query}
     except Exception as e:
@@ -247,67 +247,93 @@ async def perform_web_search(
         }
 
 
-def _search_duckduckgo(query: str, max_results: int = 5, full_content_results: int = 3) -> str:
+async def _search_duckduckgo(query: str, max_results: int = 5, full_content_results: int = 3) -> str:
     """
     Search using DuckDuckGo (news search for better results).
-    Optionally fetches full content via Jina Reader for top N results.
+    Optionally fetches full content via Jina Reader for top N results IN PARALLEL.
     """
     start_time = time.time()
-    search_results_data = []
-    urls_to_fetch = []
 
-    for attempt in range(MAX_RETRIES + 1):
-        try:
-            with DDGS() as ddgs:
-                # Use text search (general web) instead of news for better coverage of facts/prices
-                search_results = list(ddgs.text(query, max_results=max_results))
+    # Run the sync DDGS search in a thread to avoid blocking the event loop
+    def _do_ddgs_search():
+        """Sync helper for DDGS library which doesn't support async."""
+        search_results_data = []
+        urls_to_fetch = []
 
-                for i, result in enumerate(search_results, 1):
-                    title = result.get('title', 'No Title')
-                    href = result.get('url', result.get('href', '#'))
-                    body = result.get('body', result.get('excerpt', 'No description available.'))
-                    source = result.get('source', '')
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                with DDGS() as ddgs:
+                    # Use text search (general web) instead of news for better coverage of facts/prices
+                    search_results = list(ddgs.text(query, max_results=max_results))
 
-                    search_results_data.append({
-                        'index': i,
-                        'title': title,
-                        'url': href,
-                        'source': source,
-                        'summary': body,
-                        'content': None
-                    })
+                    for i, result in enumerate(search_results, 1):
+                        title = result.get('title', 'No Title')
+                        href = result.get('url', result.get('href', '#'))
+                        body = result.get('body', result.get('excerpt', 'No description available.'))
+                        source = result.get('source', '')
 
-                    # Queue top N results for full content fetch
-                    if full_content_results > 0 and i <= full_content_results and href and href != '#':
-                        urls_to_fetch.append((i - 1, href))
-                break  # Success, exit retry loop
+                        search_results_data.append({
+                            'index': i,
+                            'title': title,
+                            'url': href,
+                            'source': source,
+                            'summary': body,
+                            'content': None
+                        })
 
-        except Exception as e:
-            if "Ratelimit" in str(e) and attempt < MAX_RETRIES:
-                logger.warning(f"DuckDuckGo rate limit hit, retrying in {RETRY_DELAY}s...")
-                time.sleep(RETRY_DELAY * (attempt + 1))
-            else:
-                raise
+                        # Queue top N results for full content fetch
+                        if full_content_results > 0 and i <= full_content_results and href and href != '#':
+                            urls_to_fetch.append((i - 1, href))
+                    break  # Success, exit retry loop
 
-    # Fetch full content via Jina Reader for top results
-    for idx, url in urls_to_fetch:
-        # Check remaining time budget
+            except Exception as e:
+                if "Ratelimit" in str(e) and attempt < MAX_RETRIES:
+                    logger.warning(f"DuckDuckGo rate limit hit, retrying in {RETRY_DELAY}s...")
+                    time.sleep(RETRY_DELAY * (attempt + 1))
+                else:
+                    raise
+
+        return search_results_data, urls_to_fetch
+
+    # Execute sync DDGS search in thread pool
+    search_results_data, urls_to_fetch = await asyncio.to_thread(_do_ddgs_search)
+
+    # Fetch full content via Jina Reader for top results IN PARALLEL
+    if urls_to_fetch:
         elapsed = time.time() - start_time
         remaining = SEARCH_TIMEOUT_BUDGET - elapsed
 
-        if remaining <= 5:  # Need at least 5s to fetch content
-            logger.warning(f"Search timeout budget exhausted, skipping remaining content fetches")
-            break
+        if remaining > 5:  # Need at least 5s to fetch content
+            # Calculate timeout for each fetch (use remaining time, capped at 25s)
+            fetch_timeout = min(remaining, 25.0)
 
-        # Use remaining time as timeout for this fetch (sync version for DuckDuckGo)
-        content = _fetch_with_jina_sync(url, timeout=min(remaining, 25.0))
-        if content:
-            # If content is very short (likely paywall/cookie wall/failed parse),
-            # append the original summary to ensure we have some info.
-            if len(content) < 500:
-                original_summary = search_results_data[idx]['summary']
-                content += f"\n\n[System Note: Full content fetch yielded limited text. Appending original summary.]\nOriginal Summary: {original_summary}"
-            search_results_data[idx]['content'] = content
+            # Create async tasks for all URLs
+            async def fetch_with_index(idx: int, url: str):
+                """Wrapper to return index along with content for result mapping."""
+                content = await _fetch_with_jina(url, timeout=fetch_timeout)
+                return (idx, content)
+
+            tasks = [fetch_with_index(idx, url) for idx, url in urls_to_fetch]
+
+            # Fetch all in parallel, handling individual failures gracefully
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Process results
+            for result in results:
+                if isinstance(result, Exception):
+                    logger.warning(f"Parallel Jina fetch failed: {result}")
+                    continue
+
+                idx, content = result
+                if content:
+                    # If content is very short (likely paywall/cookie wall/failed parse),
+                    # append the original summary to ensure we have some info.
+                    if len(content) < 500:
+                        original_summary = search_results_data[idx]['summary']
+                        content += f"\n\n[System Note: Full content fetch yielded limited text. Appending original summary.]\nOriginal Summary: {original_summary}"
+                    search_results_data[idx]['content'] = content
+        else:
+            logger.warning(f"Search timeout budget exhausted, skipping content fetches")
 
     if not search_results_data:
         return "No web search results found."
