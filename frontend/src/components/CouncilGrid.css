@@ -341,8 +341,57 @@
 }
 
 /* Responsive adjustments */
+@media (max-width: 768px) {
+    .council-grid-container {
+        padding: 0 8px;
+    }
+
+    .council-grid {
+        gap: 10px;
+    }
+
+    .council-card {
+        padding: 18px 10px 12px;
+        border-radius: 12px;
+    }
+
+    .model-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+
+    .model-name {
+        font-size: 11px;
+    }
+
+    .provider-label {
+        font-size: 10px;
+    }
+
+    .role-badge {
+        font-size: 6px;
+        padding: 2px 6px;
+    }
+}
+
 @media (max-width: 600px) {
     .council-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .council-card {
+        padding: 14px 8px 10px;
+    }
+
+    .model-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    .model-name {
+        font-size: 10px;
     }
 }

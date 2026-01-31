@@ -9,7 +9,9 @@ export default function Sidebar({
   onDeleteConversation,
   onOpenSettings,
   isLoading,
-  onAbort
+  onAbort,
+  isOpen,
+  onClose
 }) {
   const [confirmingDelete, setConfirmingDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,8 +45,17 @@ export default function Sidebar({
   };
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-header">
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && <div className="sidebar-backdrop" onClick={onClose} />}
+      
+      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+        {/* Mobile close button */}
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close menu">
+          ×
+        </button>
+        
+        <div className="sidebar-header">
         <div className="sidebar-title-wrapper">
           <div className="sidebar-title">LLM Council <span className="title-plus">Plus</span></div>
           <div className="sidebar-subtitle">Created by: Jacob Ben-David</div>
@@ -143,5 +154,6 @@ export default function Sidebar({
         )}
       </div>
     </div>
+    </>
   );
 }

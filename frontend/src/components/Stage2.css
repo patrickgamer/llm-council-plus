@@ -444,3 +444,122 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
 }
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .stage2 h4 {
+    font-size: 13px;
+    margin: 16px 0 6px 0;
+  }
+
+  .stage-description {
+    font-size: 12px;
+  }
+
+  .aggregate-rankings {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .aggregate-rankings h4 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .aggregate-item {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .rank-position {
+    font-size: 14px;
+    min-width: 28px;
+  }
+
+  .mini-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  .rank-model-name {
+    font-size: 12px;
+  }
+
+  .tabs {
+    gap: 6px;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .tab-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  .tab-content {
+    padding: 14px 10px;
+  }
+
+  .model-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  .model-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .model-name-large {
+    font-size: 14px;
+  }
+
+  .ranking-content {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .parsed-ranking ol {
+    padding-left: 20px;
+  }
+
+  .parsed-ranking li {
+    font-size: 12px;
+  }
+
+  .response-error {
+    flex-direction: column;
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .info-tooltip {
+    width: 200px;
+    font-size: 11px;
+  }
+
+  .rank-bar-container {
+    height: 36px;
+  }
+
+  .rank-content {
+    padding: 0 10px;
+  }
+
+  .rank-stats {
+    gap: 8px;
+  }
+
+  .trophy-icon {
+    font-size: 16px;
+  }
+}

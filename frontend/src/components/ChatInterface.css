@@ -587,3 +587,100 @@
   display: flex;
   justify-content: center;
 }
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  /* Adjust for hamburger menu */
+  .chat-interface {
+    padding-top: 60px;
+  }
+
+  /* Reduce padding in messages area */
+  .messages-area {
+    padding: 16px 12px 100px 12px;
+  }
+
+  /* Full width messages */
+  .message {
+    max-width: 100%;
+  }
+
+  /* Adjust input area for mobile */
+  .input-area {
+    bottom: 16px;
+    width: calc(100% - 24px);
+    left: 12px;
+    transform: none;
+    max-width: none;
+  }
+
+  .input-container {
+    padding: 12px;
+  }
+
+  .input-container input {
+    font-size: 16px; /* Prevent iOS zoom */
+    padding: 12px 16px;
+  }
+
+  /* Hero section adjustments */
+  .hero-content {
+    margin-bottom: 40px;
+    padding: 0 16px;
+  }
+
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+  }
+
+  /* Empty state adjustments */
+  .empty-state {
+    padding: 16px;
+    max-width: 100%;
+  }
+
+  .empty-state h1 {
+    font-size: 1.75rem;
+  }
+
+  /* Welcome grid container */
+  .welcome-grid-container {
+    margin: 1rem auto;
+    padding: 0 12px;
+  }
+
+  /* Execution mode toggle */
+  .execution-mode-wrapper {
+    margin-top: 12px;
+  }
+
+  /* Message role header */
+  .message-role {
+    font-size: 12px;
+  }
+
+  /* User message */
+  .user-message-card {
+    padding: 16px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .input-container input {
+    padding: 10px 12px;
+  }
+
+  .send-button {
+    width: 40px;
+    height: 40px;
+  }
+}
