@@ -37,62 +37,62 @@ The result? More balanced, accurate, and thoroughly vetted responses that levera
 ## Installation
 
 ```bash
-# Clone and install
-git clone https://github.com/jacob-bd/llm-council-plus.git
+git clone https://github.com/patrickgamer/llm-council-plus.git
 cd llm-council-plus
-uv sync                    # Backend dependencies
-cd frontend && npm install # Frontend dependencies
-
-# Run (from project root)
 ./start.sh
 ```
 
+That's it. The start script automatically installs all dependencies (Homebrew, uv, Node.js) if needed.
+
 Then open **http://localhost:5173** and configure your API keys in Settings.
 
-> **Prerequisites:** Python 3.10+, Node.js 18+, [uv](https://docs.astral.sh/uv/)
+> **Note:** On Linux, you'll need to install Node.js manually if not present.
 
 ---
 
 ## How It Works
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        YOUR QUESTION                             │
-│            (+ optional web search for real-time info)            │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    STAGE 1: DELIBERATION                         │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐             │
-│  │ Claude  │  │  GPT-4  │  │ Gemini  │  │  Llama  │  ...        │
-│  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘             │
-│       │            │            │            │                   │
-│       ▼            ▼            ▼            ▼                   │
-│  Response A   Response B   Response C   Response D               │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    STAGE 2: PEER REVIEW                          │
-│  Each model reviews ALL responses (anonymized as A, B, C, D)     │
-│  and ranks them by accuracy, insight, and completeness           │
-│                                                                   │
-│  Rankings are aggregated to identify the best responses          │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    STAGE 3: SYNTHESIS                            │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │                    CHAIRMAN MODEL                        │    │
-│  │  Reviews all responses + rankings + search context       │    │
-│  │  Synthesizes the council's collective wisdom             │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                              │                                   │
-│                              ▼                                   │
-│                      FINAL ANSWER                                │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Input["📝 YOUR QUESTION"]
+        Q["Your question + optional web search"]
+    end
+
+    subgraph Stage1["⚡ STAGE 1: DELIBERATION"]
+        direction LR
+        M1["Claude"]
+        M2["GPT-4"]
+        M3["Gemini"]
+        M4["Llama"]
+    end
+
+    subgraph Responses[" "]
+        direction LR
+        R1["Response A"]
+        R2["Response B"]
+        R3["Response C"]
+        R4["Response D"]
+    end
+
+    subgraph Stage2["🔍 STAGE 2: PEER REVIEW"]
+        Review["Each model reviews ALL responses<br/>anonymized as A, B, C, D<br/>and ranks by accuracy, insight, completeness"]
+        Aggregate["Rankings aggregated to identify best responses"]
+    end
+
+    subgraph Stage3["👑 STAGE 3: SYNTHESIS"]
+        Chairman["CHAIRMAN MODEL<br/>Reviews all responses + rankings + search context<br/>Synthesizes collective wisdom"]
+        Final["✨ FINAL ANSWER"]
+    end
+
+    Q --> Stage1
+    M1 --> R1
+    M2 --> R2
+    M3 --> R3
+    M4 --> R4
+    Responses --> Review
+    Review --> Aggregate
+    Aggregate --> Chairman
+    Chairman --> Final
 ```
 
 ---
@@ -185,18 +185,14 @@ Fine-tune creativity vs consistency:
 
 ## Quick Start
 
-### Prerequisites
-
-- **Python 3.10+**
-- **Node.js 18+**
-- **[uv](https://docs.astral.sh/uv/)** (Python package manager)
-
 ### Running the Application
 
 **Option 1: Use the start script (recommended)**
 ```bash
 ./start.sh
 ```
+
+The script automatically checks for and installs dependencies (Homebrew, uv, Node.js on macOS).
 
 **Option 2: Run manually**
 
