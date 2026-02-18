@@ -99,11 +99,7 @@ jobs:
           git checkout prod
           if git ls-files --error-unmatch issues.md 2>/dev/null; then
             git rm issues.md
-            git commit -m "chore: remove issues.md after all 16 GitHub issues created
-
-All 16 LLM Council+ Electron Packaging issues have been
-successfully created via GitHub Actions workflow.
-Issues #1 through #16 are now tracked in the issue tracker."
+            git commit -m "chore: remove issues.md after all 16 GitHub issues created"
             git push origin prod
             echo "Successfully deleted issues.md from prod branch"
           else
