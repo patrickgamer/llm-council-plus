@@ -1,0 +1,111 @@
+name: Create GitHub Issues from issues.md
+
+on:
+  push:
+    branches:
+      - 'claude/create-github-issues-KxK4f'
+    paths:
+      - '.github/workflows/create-issues.yml'
+      - '.github/scripts/create_issues.py'
+  workflow_dispatch:
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: claude/create-github-issues-KxK4f
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Git identity
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      - name: Check if issues already exist
+        id: check
+        run: |
+          count=$(gh issue list --limit 1 --state all --json number | python3 -c "import sys,json; l=json.load(sys.stdin); print(len(l))")
+          echo "existing_issues=$count" >> $GITHUB_OUTPUT
+          echo "Existing open issues: $count"
+          if [ "$count" -gt "0" ]; then
+            echo "Issues already exist ($count found). Skipping creation to avoid duplicates."
+          fi
+
+      - name: Create custom labels
+        if: steps.check.outputs.existing_issues == '0'
+        run: |
+          # Security labels
+          gh label create "security"          --color "d73a4a" --force || true
+          gh label create "critical"          --color "d73a4a" --force || true
+          gh label create "breaking-change"   --color "d73a4a" --force || true
+          # Backend/API/Core
+          gh label create "backend"           --color "0075ca" --force || true
+          gh label create "api"               --color "0075ca" --force || true
+          gh label create "core"              --color "0075ca" --force || true
+          # Frontend/UX
+          gh label create "frontend"          --color "7057ff" --force || true
+          gh label create "ux"                --color "7057ff" --force || true
+          # Electron/macOS
+          gh label create "electron"          --color "e4e669" --force || true
+          gh label create "macos"             --color "e4e669" --force || true
+          # Setup/Foundation
+          gh label create "setup"             --color "008672" --force || true
+          gh label create "foundation"        --color "008672" --force || true
+          # Packaging/Distribution
+          gh label create "packaging"         --color "e99695" --force || true
+          gh label create "distribution"      --color "e99695" --force || true
+          # Process Management
+          gh label create "process-management" --color "0e8a16" --force || true
+          # Design
+          gh label create "design"            --color "f9d0c4" --force || true
+          # Data
+          gh label create "data"              --color "fbca04" --force || true
+          # Testing/QA/Priority
+          gh label create "testing"           --color "cfd3d7" --force || true
+          gh label create "qa"                --color "cfd3d7" --force || true
+          gh label create "low-priority"      --color "cfd3d7" --force || true
+          # Enhancement
+          gh label create "enhancement"       --color "a2eeef" --force || true
+
+      - name: Create issues from issues.md
+        if: steps.check.outputs.existing_issues == '0'
+        run: python3 .github/scripts/create_issues.py
+
+      - name: Verify all 16 issues were created
+        if: steps.check.outputs.existing_issues == '0'
+        run: |
+          count=$(gh issue list --limit 20 --state open --json number | python3 -c "import sys,json; l=json.load(sys.stdin); print(len(l))")
+          echo "Issues created: $count"
+          if [ "$count" -lt "16" ]; then
+            echo "ERROR: Expected 16 issues, only $count were created"
+            exit 1
+          fi
+          echo "All 16 issues created successfully!"
+
+      - name: Delete issues.md from prod branch
+        if: steps.check.outputs.existing_issues == '0'
+        run: |
+          git fetch origin prod
+          git checkout prod
+          if git ls-files --error-unmatch issues.md 2>/dev/null; then
+            git rm issues.md
+            git commit -m "chore: remove issues.md after all 16 GitHub issues created
+
+All 16 LLM Council+ Electron Packaging issues have been
+successfully created via GitHub Actions workflow.
+Issues #1 through #16 are now tracked in the issue tracker."
+            git push origin prod
+            echo "Successfully deleted issues.md from prod branch"
+          else
+            echo "issues.md not found on prod branch, nothing to delete"
+          fi
