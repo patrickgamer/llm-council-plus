@@ -1,0 +1,33 @@
+{
+  "name": "llm-council-plus",
+  "version": "0.1.0",
+  "description": "LLM Council+ desktop application",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "electron:dev": "electron .",
+    "electron:build": "electron-builder --mac --universal"
+  },
+  "build": {
+    "appId": "com.llmcouncil.plus",
+    "productName": "LLM Council+",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/dist/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": {
+        "target": "default",
+        "arch": "universal"
+      }
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.3.1",
+    "electron-builder": "^25.1.8"
+  }
+}
