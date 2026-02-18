@@ -19,11 +19,15 @@
       "frontend/dist/**/*"
     ],
     "mac": {
+      "icon": "assets/icon.icns",
       "category": "public.app-category.productivity",
       "target": {
         "target": "default",
         "arch": "universal"
       }
+    },
+    "dmg": {
+      "icon": "assets/icon.icns"
     }
   },
   "devDependencies": {
