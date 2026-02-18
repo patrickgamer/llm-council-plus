@@ -110,6 +110,33 @@ This fixes binary incompatibilities (e.g., `@rollup/rollup-darwin-*` variants).
 
 **Styling**: "Council Chamber" dark theme (refined Midnight Glass). CSS variables in `index.css` (`--font-display`: Syne, `--font-ui`: Plus Jakarta Sans, `--font-content`: Source Serif 4, `--font-code`: JetBrains Mono). Primary accent blue (#3b82f6), chairman gold (#fbbf24). Staggered hero/card animations; glass panels with backdrop-filter.
 
+### Electron (`electron/`)
+
+Desktop application shell using Electron with electron-builder for macOS packaging.
+
+| File | Purpose |
+|------|---------|
+| `main.js` | Main process: creates BrowserWindow, loads frontend (dev server or built files) |
+| `preload.js` | Preload script: contextBridge skeleton for secure renderer ↔ main IPC |
+
+**App Identity**: "LLM Council+" — bundle ID `com.llmcouncil.plus`, macOS universal binary (Intel + Apple Silicon).
+
+**Running Electron:**
+```bash
+# Development (requires backend + frontend already running)
+npm run electron:dev
+
+# Build macOS .app bundle (requires frontend built first)
+cd frontend && npm run build && cd .. && npm run electron:build
+```
+
+**Key Configuration:**
+- `titleBarStyle: 'hiddenInset'` with `trafficLightPosition: { x: 16, y: 16 }`
+- `backgroundColor: '#0a0a14'` prevents white flash on load
+- `show: false` + `ready-to-show` pattern for clean startup
+- Security: `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, `webSecurity: true`
+- Window: 1400x900 default, 900x600 minimum
+
 ## Critical Implementation Details
 
 ### Python Module Imports
